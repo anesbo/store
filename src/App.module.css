@@ -1,0 +1,11 @@
+/* src/App.module.css */
+
+.appContainer {
+    display: flex;
+    height: 100vh; /* Make the app container fill the full screen height */
+  }
+  
+  .mainContent {
+    flex-grow: 1; /* This is the most important rule! It tells this element to grow and fill all available space. */
+    overflow-y: auto; /* Allows the content area to scroll if it gets too long */
+  }
