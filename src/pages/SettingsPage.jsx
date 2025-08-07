@@ -1,23 +1,19 @@
 // src/pages/SettingsPage.jsx
 import React, { useState, useEffect } from 'react';
-// 1. IMPORT both hooks: useSettings for actions, useSetting for reactive values
 import { useSettings, useSetting } from '../hooks/useSettings';
 import { db } from '../lib/db';
 import styles from './SettingsPage.module.css';
 import Button from '../components/ui/Button.jsx';
 
 function SettingsPage() {
-  // Use the 'action' hook for saving data
-  const { updateSetting, setPassword } = useSettings();
-  // 2. Use the new, reactive hook to GET the live value from the database
+  const { updateSetting, setPassword, archiveOldData } = useSettings();
   const staleDaysSetting = useSetting('staleDays', 20);
   
-  // Local state for the form inputs
   const [staleDays, setStaleDays] = useState(20);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [exportFileName, setExportFileName] = useState(`store-backup-${new Date().toISOString().split('T')[0]}`);
 
-  // 3. This useEffect now syncs the local form state with the reactive value from the DB
   useEffect(() => {
     setStaleDays(staleDaysSetting);
   }, [staleDaysSetting]);
@@ -41,39 +37,46 @@ function SettingsPage() {
       categories: await db.categories.toArray(),
       sales: await db.sales.toArray(),
       expenses: await db.expenses.toArray(),
+      suppliers: await db.suppliers.toArray(),
       settings: await db.settings.toArray(),
     };
     const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(allData, null, 2))}`;
     const link = document.createElement("a");
     link.href = jsonString;
-    link.download = `store-backup-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `${exportFileName}.json`;
     link.click();
   };
 
   const handleImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    if (!window.confirm("WARNING: Importing a file will overwrite ALL existing data. Are you sure?")) {
-      event.target.value = ''; // Reset the file input
+
+    if (!window.confirm("WARNING: Importing a file will overwrite ALL existing data. Are you sure you want to continue?")) {
+      event.target.value = '';
       return;
     }
+
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        await db.transaction('rw', db.products, db.categories, db.sales, db.expenses, db.settings, async () => {
-          await Promise.all(Object.keys(data).map(key => db[key]?.clear()));
-          await Promise.all(Object.keys(data).map(key => db[key]?.bulkAdd(data[key])));
+        const expectedTables = ['products', 'categories', 'sales', 'expenses', 'settings', 'suppliers'];
+        const tablesToImport = expectedTables.filter(t => db[t] && data[t]);
+
+        await db.transaction('rw', tablesToImport, async () => {
+          await Promise.all(tablesToImport.map(key => db[key].clear()));
+          await Promise.all(tablesToImport.map(key => db[key].bulkAdd(data[key])));
         });
+
         alert("Data imported successfully! The page will now reload.");
         window.location.reload();
       } catch (error) {
-        alert("Failed to import file. It may be corrupted.");
+        alert("Failed to import file. It may be corrupted or have an invalid format.");
         console.error(error);
       }
     };
     reader.readAsText(file);
-    event.target.value = ''; // Reset file input after selection
+    event.target.value = '';
   };
 
   return (
@@ -92,8 +95,19 @@ function SettingsPage() {
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>Data Management</h2>
         <div className={styles.dataActions}>
+          <div className={styles.settingItem}>
+            <label htmlFor="exportFile" className={styles.label}>Export Filename</label>
+            <input 
+              id="exportFile"
+              type="text" 
+              value={exportFileName}
+              onChange={e => setExportFileName(e.target.value)}
+              className={styles.input}
+            />
+          </div>
           <Button onClick={handleExport} variant="edit">Export Data to JSON</Button>
-          <div>
+          
+          <div style={{marginTop: '1rem'}}>
             <label htmlFor="importFile" className={styles.label}>Import Data from JSON</label>
             <p className={styles.warning}>Warning: This will overwrite ALL existing data.</p>
             <input id="importFile" type="file" accept=".json" onChange={handleImport} />
@@ -111,6 +125,16 @@ function SettingsPage() {
           <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={styles.input} />
         </div>
         <Button onClick={handleSetPassword} variant="save">Set Password</Button>
+      </div>
+      
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>Archive Data</h2>
+        <div className={styles.settingItem}>
+          <p className={styles.label}>Move records older than one year into a permanent archive. This can improve daily performance while keeping your data safe.</p>
+          <Button onClick={archiveOldData} variant="delete">
+            Archive Old Records
+          </Button>
+        </div>
       </div>
     </div>
   );

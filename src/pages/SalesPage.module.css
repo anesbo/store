@@ -110,3 +110,22 @@
     font-size: 1.25rem;
     cursor: pointer;
   }
+  /* Replace the .grid style in SalesPage.module.css with this */
+.gridContainer {
+  flex-grow: 1;
+  overflow: auto; /* This element MUST be the scroller */
+  position: relative; /* Needed for absolute positioning of children */
+}
+
+/* Make sure the product card fills the space it's given */
+.productCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  padding-top: 0;
+  text-align: center;
+  height: 100%; /* Fill the container div */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}

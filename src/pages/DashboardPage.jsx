@@ -1,13 +1,14 @@
 // src/pages/DashboardPage.jsx
 
-import React, { useState,useEffect, useMemo  } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import { useSales } from '../hooks/useSales';
-import { useSettings } from '../hooks/useSettings';
+import { useSetting } from '../hooks/useSettings';
 import { useExpenses } from '../hooks/useExpenses';
 import { useSuppliers } from '../hooks/useSuppliers';
+import { useCategories } from '../hooks/useCategories';
 import styles from './DashboardPage.module.css';
-import { FaDollarSign, FaRegCalendarAlt, FaRegCalendarCheck, FaRegClock } from 'react-icons/fa';
+import { FaDollarSign, FaRegCalendarAlt, FaRegCalendarCheck, FaRegClock, FaBoxes, FaChartPie, FaChartBar } from 'react-icons/fa';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -27,14 +28,10 @@ function StatCard({ icon, title, value, secondaryValue, color }) {
 function DashboardPage() {
   const { products } = useProducts();
   const { sales } = useSales();
-  const { settings } = useSettings();
   const { expenses } = useExpenses();
   const { suppliers } = useSuppliers();
-
-  const STALE_PRODUCT_DAYS = useMemo(() => {
-    const setting = settings?.find(s => s.key === 'staleDays');
-    return setting ? setting.value : 20;
-  }, [settings]);
+  const { categories } = useCategories();
+  const STALE_PRODUCT_DAYS = useSetting('staleDays', 20);
 
   const [salesPage, setSalesPage] = useState(1);
   const [lowStockPage, setLowStockPage] = useState(1);
@@ -43,12 +40,20 @@ function DashboardPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [expandedSaleId, setExpandedSaleId] = useState(null);
+  
   useEffect(() => {
-    setHistoryPage(1); // Reset the history table to page 1
+    setHistoryPage(1);
   }, [startDate, endDate]);
+
   const dashboardData = useMemo(() => {
-    if (!sales || !products || !expenses || !suppliers) {
-      return { sortedSales: [], lowStock: [], staleProducts: [], unpaidDebts: [], todayRevenue: 0, weekRevenue: 0, monthRevenue: 0, todayProfit: 0, weekProfit: 0, monthProfit: 0 };
+    if (!sales || !products || !expenses || !suppliers || !categories) {
+      return { 
+        sortedSales: [], lowStock: [], staleProducts: [], unpaidDebts: [], 
+        todayRevenue: 0, weekRevenue: 0, monthRevenue: 0, yearRevenue: 0,
+        todayProfit: 0, weekProfit: 0, monthProfit: 0, yearProfit: 0,
+        totalCapitalPurchase: 0, totalCapitalSelling: 0,
+        productCount: 0, categoryCount: 0
+      };
     }
 
     const now = new Date();
@@ -56,12 +61,19 @@ function DashboardPage() {
     const startOfWeek = new Date(startOfToday);
     startOfWeek.setDate(startOfWeek.getDate() - now.getDay());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
     const staleThresholdDate = new Date();
     staleThresholdDate.setDate(staleThresholdDate.getDate() - STALE_PRODUCT_DAYS);
 
-    let todayRevenue = 0, weekRevenue = 0, monthRevenue = 0;
-    let todayCost = 0, weekCost = 0, monthCost = 0;
+    let todayRevenue = 0, weekRevenue = 0, monthRevenue = 0, yearRevenue = 0;
+    let todayCost = 0, weekCost = 0, monthCost = 0, yearCost = 0;
+    let totalCapitalPurchase = 0, totalCapitalSelling = 0;
     const lastSaleDateByProductId = new Map();
+
+    products.forEach(p => {
+        totalCapitalPurchase += (p.purchasePrice || 0) * p.stock;
+        totalCapitalSelling += (p.sellingPrice || 0) * p.stock;
+    });
 
     sales.forEach(sale => {
       const saleTimestamp = new Date(sale.timestamp);
@@ -73,11 +85,13 @@ function DashboardPage() {
       if (saleTimestamp >= startOfToday) { todayRevenue += sale.totalAmount; todayCost += saleCost; }
       if (saleTimestamp >= startOfWeek) { weekRevenue += sale.totalAmount; weekCost += saleCost; }
       if (saleTimestamp >= startOfMonth) { monthRevenue += sale.totalAmount; monthCost += saleCost; }
+      if (saleTimestamp >= startOfYear) { yearRevenue += sale.totalAmount; yearCost += saleCost; }
     });
 
     const todayProfit = todayRevenue - todayCost;
     const weekProfit = weekRevenue - weekCost;
     const monthProfit = monthRevenue - monthCost;
+    const yearProfit = yearRevenue - yearCost;
     const lowStock = products.filter(p => p.stock <= 5).sort((a, b) => a.stock - b.stock);
     const staleProducts = products.filter(p => {
       const lastSaleDate = lastSaleDateByProductId.get(p.id);
@@ -85,16 +99,21 @@ function DashboardPage() {
     });
     const sortedSales = [...sales].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
-    // MODIFIED: Simplified the debt calculation to find all unpaid expenses
     const supplierMap = new Map(suppliers.map(s => [s.id, s.name]));
     const unpaidDebts = expenses.filter(e => e.status === 'Unpaid')
       .map(e => ({ ...e, supplierName: supplierMap.get(e.supplierId) || 'Unknown' }));
 
-    return { sortedSales, lowStock, staleProducts, unpaidDebts, todayRevenue, weekRevenue, monthRevenue, todayProfit, weekProfit, monthProfit };
-  }, [sales, products, expenses, suppliers, STALE_PRODUCT_DAYS]);
+    return { 
+        sortedSales, lowStock, staleProducts, unpaidDebts, 
+        todayRevenue, weekRevenue, monthRevenue, yearRevenue,
+        todayProfit, weekProfit, monthProfit, yearProfit,
+        totalCapitalPurchase, totalCapitalSelling,
+        productCount: products.length, categoryCount: categories.length
+    };
+  }, [sales, products, expenses, suppliers, categories, STALE_PRODUCT_DAYS]);
 
   const salesHistoryData = useMemo(() => {
-    if (!dashboardData.sortedSales) return { filteredSales: [], periodRevenue: 0, periodProfit: 0 };
+    if (!dashboardData?.sortedSales) return { filteredSales: [], periodRevenue: 0, periodProfit: 0 };
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
     if(start) start.setHours(0, 0, 0, 0);
@@ -116,14 +135,14 @@ function DashboardPage() {
     });
 
     return { filteredSales, periodRevenue, periodProfit };
-  }, [dashboardData.sortedSales, startDate, endDate]);
+  }, [dashboardData?.sortedSales, startDate, endDate]);
 
   const handleToggleSaleDetails = (saleId) => setExpandedSaleId(prevId => (prevId === saleId ? null : saleId));
 
   const paginate = (items, page, perPage) => {
-    if (!items) return { paginatedItems: [], totalPages: 0 };
-    const totalPages = Math.ceil(items.length / perPage);
-    const paginatedItems = items.slice((page - 1) * perPage, page * perPage);
+    const safeItems = items || [];
+    const totalPages = Math.ceil(safeItems.length / perPage);
+    const paginatedItems = safeItems.slice((page - 1) * perPage, page * perPage);
     return { paginatedItems, totalPages };
   };
 
@@ -132,7 +151,7 @@ function DashboardPage() {
   const stalePagination = paginate(dashboardData.staleProducts, stalePage, ITEMS_PER_PAGE);
   const historyPagination = paginate(salesHistoryData.filteredSales, historyPage, ITEMS_PER_PAGE);
 
-  if (!sales || !products || !expenses || !suppliers) {
+  if (!sales || !products || !expenses || !suppliers || !categories) {
     return <div className={styles.pageContainer}>Loading Dashboard...</div>
   }
 
@@ -144,7 +163,6 @@ function DashboardPage() {
     </div>
   );
 
- 
   return (
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>Dashboard</h1>
@@ -153,6 +171,12 @@ function DashboardPage() {
         <StatCard icon={<FaRegClock />} title="Revenue Today" value={`$${dashboardData.todayRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.todayProfit.toFixed(2)}`} color="#22c55e" />
         <StatCard icon={<FaRegCalendarAlt />} title="Revenue This Week" value={`$${dashboardData.weekRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.weekProfit.toFixed(2)}`} color="#3b82f6" />
         <StatCard icon={<FaRegCalendarCheck />} title="Revenue This Month" value={`$${dashboardData.monthRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.monthProfit.toFixed(2)}`} color="#eab308" />
+      </div>
+      
+      <div className={styles.statsGrid} style={{marginTop: '2rem'}}>
+        <StatCard icon={<FaChartBar />} title="Income This Year" value={`$${dashboardData.yearRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.yearProfit.toFixed(2)}`} color="#8b5cf6" />
+        <StatCard icon={<FaChartPie />} title="Inventory Value" value={`$${dashboardData.totalCapitalSelling.toFixed(2)}`} secondaryValue={`Cost: $${dashboardData.totalCapitalPurchase.toFixed(2)}`} color="#ec4899" />
+        <StatCard icon={<FaBoxes />} title="Total Products" value={dashboardData.productCount} secondaryValue={`${dashboardData.categoryCount} Categories`} color="#6366f1" />
       </div>
 
       <div className={styles.bottomGrid}>
@@ -172,11 +196,9 @@ function DashboardPage() {
           <ul>{stalePagination.paginatedItems.map(p => <li key={p.id} className={styles.listItem}><span>{p.name}</span><small>No recent sales</small></li>)}</ul>
           {renderPaginationControls(stalePage, stalePagination.totalPages, setStalePage)}
         </div>
-        
-        {/* MODIFIED: Updated the debt alert card */}
         <div className={styles.card}>
             <h2 className={styles.cardTitle} style={{ color: '#991b1b' }}>🚨 Unpaid Expenses</h2>
-            <p style={{fontSize: '0.8rem', marginTop: '-1rem', color: '#666'}}>All current outstanding debts.</p>
+            <p style={{fontSize: '0.zrem', marginTop: '-1rem', color: '#666'}}>All current outstanding debts.</p>
             <ul>
                 {dashboardData.unpaidDebts.map(expense => (
                 <li key={expense.id} className={styles.listItem}>

@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../lib/db';
 import toast from 'react-hot-toast';
 
-// This helper function is correct and does not need changes.
+// Helper function to hash a password
 async function hashPassword(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
@@ -11,26 +11,15 @@ async function hashPassword(password) {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/**
- * This is now the ONLY way to get a single, reactive setting value.
- * It's efficient and guaranteed to update when the database changes.
- */
+// Hook for a single, reactive setting value
 export function useSetting(key, defaultValue) {
-  const setting = useLiveQuery(
-    () => db.settings.get(key),
-    [key] // Dependency array: re-run query if the key changes
-  );
+  const setting = useLiveQuery(() => db.settings.get(key), [key]);
   return setting ? setting.value : defaultValue;
 }
 
-/**
- * This hook is now for ACTIONS (updating, setting password) 
- * and for getting the WHOLE list of settings if needed elsewhere.
- */
+// Main hook for settings actions
 export function useSettings() {
   const settings = useLiveQuery(() => db.settings.toArray(), []);
-
-  // REMOVED: The old getSetting function. This prevents confusion and reactivity bugs.
 
   const updateSetting = async (key, value) => {
     try {
@@ -49,5 +38,61 @@ export function useSettings() {
     await updateSetting('passwordHash', passwordHash);
   };
   
-  return { settings, updateSetting, setPassword, hashPassword };
+  const archiveOldData = async () => {
+    // ... (your existing archive logic)
+  };
+
+  // The new auto-backup function, placed inside the hook
+  const runAutoBackup = async () => {
+    const settingsArray = await db.settings.toArray();
+    const lastBackupSetting = settingsArray.find(s => s.key === 'lastBackupTime');
+    const lastBackupTime = lastBackupSetting ? new Date(lastBackupSetting.value) : null;
+    
+    const now = new Date();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    if (!lastBackupTime || (now - lastBackupTime > twentyFourHours)) {
+      console.log("Starting automatic backup to Supabase Storage...");
+      
+      try {
+        const allData = {
+          products: await db.products.toArray(),
+          categories: await db.categories.toArray(),
+          sales: await db.sales.toArray(),
+          expenses: await db.expenses.toArray(),
+          suppliers: await db.suppliers.toArray(),
+        };
+
+        const backupFile = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+        const fileName = `anes store-${new Date().toISOString().split('T')[0]}.json`;
+
+        const SUPABASE_URL = 'https://sbkzctzbwifuzudfnshh.supabase.co'; // <-- PASTE YOUR URL HERE
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3pjdHpid2lmdXp1ZGZuc2hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NzIzNDYsImV4cCI6MjA3MDE0ODM0Nn0.98UzaQKW59u_d2Z9H1BYluofjWBxVWBCY4pq5G7Hvek';   // <-- PASTE YOUR KEY HERE
+        
+        const response = await fetch(`${SUPABASE_URL}/storage/v1/object/backups/${fileName}`, {
+          method: 'POST',
+          body: backupFile,
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (!response.ok) throw new Error('Backup failed to upload.');
+
+        await db.settings.put({ key: 'lastBackupTime', value: now.toISOString() });
+        toast.success('Automatic backup completed!');
+
+      } catch (error) {
+        console.error("Auto-backup failed:", error);
+        toast.error('Automatic backup failed.');
+      }
+    } else {
+      console.log("No need to backup yet. Last backup was recent.");
+    }
+  };
+
+  // Add the new function to the return object
+  return { settings, updateSetting, setPassword, hashPassword, archiveOldData, runAutoBackup };
 }

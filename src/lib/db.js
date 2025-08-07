@@ -59,3 +59,14 @@ db.version(6).stores({
   // ADD debtAmount to the suppliers table
   suppliers: '++id, &name, debtAmount', 
 });
+// src/lib/db.js
+db.version(7).stores({
+  // ... your existing tables
+  products: '++id, name, category',
+  sales: '++id, timestamp',
+  expenses: '++id, date',
+
+  // NEW: Archive tables
+  sales_archive: '++id, timestamp',
+  expenses_archive: '++id, date',
+});

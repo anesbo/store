@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSales } from '../hooks/useSales';
 import { useExpenses } from '../hooks/useExpenses';
+import { useSuppliers } from '../hooks/useSuppliers';
 import styles from './ReportsPage.module.css';
 import Button from '../components/ui/Button.jsx';
 
@@ -11,13 +12,14 @@ const UPCOMING_EXPENSE_DAYS = 3;
 function ReportsPage() {
   const { sales } = useSales();
   const { expenses } = useExpenses();
+  const { suppliers } = useSuppliers();
   
   const [reportType, setReportType] = useState('profit_loss');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
   const reportData = useMemo(() => {
-    if (!sales || !expenses) return null;
+    if (!sales || !expenses || !suppliers) return null;
 
     // --- Date Filtering ---
     const start = startDate ? new Date(startDate) : null;
@@ -63,8 +65,21 @@ function ReportsPage() {
         return e.status === 'Upcoming' && dueDate >= now && dueDate <= upcomingThreshold;
     });
 
-    return { totalRevenue, totalCOGS, totalExpenses, grossProfit, netProfit, salesByCategory, upcomingExpenses };
-  }, [sales, expenses, startDate, endDate]);
+    // --- Supplier Debt Calculation ---
+    const supplierDebts = {};
+    expenses.forEach(expense => {
+      if (expense.status === 'Unpaid' && expense.supplierId) {
+        supplierDebts[expense.supplierId] = (supplierDebts[expense.supplierId] || 0) + expense.amount;
+      }
+    });
+    const supplierDebtList = suppliers
+      .map(s => ({ id: s.id, name: s.name, debt: supplierDebts[s.id] || 0 }))
+      .filter(s => s.debt > 0)
+      .sort((a, b) => b.debt - a.debt);
+    const totalDebt = supplierDebtList.reduce((sum, s) => sum + s.debt, 0);
+
+    return { totalRevenue, totalCOGS, totalExpenses, grossProfit, netProfit, salesByCategory, upcomingExpenses, supplierDebtList, totalDebt };
+  }, [sales, expenses, suppliers, startDate, endDate]);
 
   return (
     <div className={styles.pageContainer}>
@@ -76,6 +91,7 @@ function ReportsPage() {
           <select value={reportType} onChange={e => setReportType(e.target.value)} className={styles.formInput}>
             <option value="profit_loss">Profit & Loss</option>
             <option value="sales_by_category">Sales by Category</option>
+            <option value="supplier_debt">Supplier Debt Report</option>
           </select>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={styles.formInput} />
           <span>to</span>
@@ -124,6 +140,25 @@ function ReportsPage() {
                         <tbody>
                             {Object.entries(reportData.salesByCategory).sort(([,a],[,b]) => b-a).map(([category, revenue]) => (
                                 <tr key={category}><td>{category}</td><td>${revenue.toFixed(2)}</td></tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+            
+            {/* Supplier Debt Report */}
+            {reportType === 'supplier_debt' && (
+                <div className={styles.card}>
+                    <h2 className={styles.reportTitle}>Supplier Debt Report</h2>
+                    <div className={styles.summaryItem} style={{marginBottom: '1rem'}}>
+                        <p>Total Outstanding Debt</p>
+                        <span style={{color: '#ef4444'}}>${reportData.totalDebt.toFixed(2)}</span>
+                    </div>
+                    <table className={styles.reportTable}>
+                        <thead><tr><th>Supplier</th><th>Total Debt</th></tr></thead>
+                        <tbody>
+                            {reportData.supplierDebtList.map(s => (
+                                <tr key={s.id}><td>{s.name}</td><td>${s.debt.toFixed(2)}</td></tr>
                             ))}
                         </tbody>
                     </table>
