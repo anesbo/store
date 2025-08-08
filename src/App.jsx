@@ -1,6 +1,7 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { Toaster } from 'react-hot-toast';
 import ProtectedLayout from './components/layout/ProtectedLayout.jsx';
 import Navbar from './components/layout/Navbar.jsx';
 import styles from './App.module.css';
@@ -21,6 +22,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <div className={styles.appContainer}>
+        <Toaster position="top-center" />
           <Navbar />
           <main className={styles.mainContent}>
             <Routes>

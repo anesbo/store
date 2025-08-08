@@ -39,11 +39,35 @@ export function useSettings() {
   };
   
   const archiveOldData = async () => {
-    // ... (your existing archive logic)
+    const cutoffDate = new Date();
+    cutoffDate.setFullYear(cutoffDate.getFullYear() - 1);
+
+    if (!window.confirm("This will move all sales and expenses older than one year to an archive. This cannot be undone. Continue?")) {
+        return;
+    }
+
+    toast.promise(
+      db.transaction('rw', db.sales, db.sales_archive, db.expenses, db.expenses_archive, async () => {
+        const oldSales = await db.sales.where('timestamp').below(cutoffDate).toArray();
+        if (oldSales.length > 0) {
+          await db.sales_archive.bulkAdd(oldSales);
+          await db.sales.where('timestamp').below(cutoffDate).delete();
+        }
+        const oldExpenses = await db.expenses.where('date').below(cutoffDate).toArray();
+        if (oldExpenses.length > 0) {
+            await db.expenses_archive.bulkAdd(oldExpenses);
+            await db.expenses.where('date').below(cutoffDate).delete();
+        }
+      }),
+      {
+        loading: 'Archiving old records...',
+        success: 'Archiving complete!',
+        error: 'Archiving failed.',
+      }
+    );
   };
 
-  // The new auto-backup function, placed inside the hook
-  const runAutoBackup = async () => {
+  const runAutoBackup = async ({ force = false } = {}) => {
     const settingsArray = await db.settings.toArray();
     const lastBackupSetting = settingsArray.find(s => s.key === 'lastBackupTime');
     const lastBackupTime = lastBackupSetting ? new Date(lastBackupSetting.value) : null;
@@ -51,8 +75,8 @@ export function useSettings() {
     const now = new Date();
     const twentyFourHours = 24 * 60 * 60 * 1000;
 
-    if (!lastBackupTime || (now - lastBackupTime > twentyFourHours)) {
-      console.log("Starting automatic backup to Supabase Storage...");
+    if (force || !lastBackupTime || (now - lastBackupTime > twentyFourHours)) {
+      const toastId = toast.loading('Starting backup to Supabase...');
       
       try {
         const allData = {
@@ -64,35 +88,42 @@ export function useSettings() {
         };
 
         const backupFile = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
-        const fileName = `anes store-${new Date().toISOString().split('T')[0]}.json`;
+        
+        const nowForFilename = new Date();
+        const timestamp = `${nowForFilename.getFullYear()}-${String(nowForFilename.getMonth() + 1).padStart(2, '0')}-${String(nowForFilename.getDate()).padStart(2, '0')}_${String(nowForFilename.getHours()).padStart(2, '0')}-${String(nowForFilename.getMinutes()).padStart(2, '0')}-${String(nowForFilename.getSeconds()).padStart(2, '0')}`;
+        const fileName = `anes-store-backup-${timestamp}.json`;
 
-        const SUPABASE_URL = 'https://sbkzctzbwifuzudfnshh.supabase.co'; // <-- PASTE YOUR URL HERE
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3pjdHpid2lmdXp1ZGZuc2hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NzIzNDYsImV4cCI6MjA3MDE0ODM0Nn0.98UzaQKW59u_d2Z9H1BYluofjWBxVWBCY4pq5G7Hvek';   // <-- PASTE YOUR KEY HERE
+        const SUPABASE_URL = 'https://sbkzctzbwifuzudfnshh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3pjdHpid2lmdXp1ZGZuc2hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NzIzNDYsImV4cCI6MjA3MDE0ODM0Nn0.98UzaQKW59u_d2Z9H1BYluofjWBxVWBCY4pq5G7Hvek';
         
         const response = await fetch(`${SUPABASE_URL}/storage/v1/object/backups/${fileName}`, {
           method: 'POST',
           body: backupFile,
           headers: {
             'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_KEY}`
           }
         });
         
-        if (!response.ok) throw new Error('Backup failed to upload.');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Backup failed to upload.');
+        }
 
         await db.settings.put({ key: 'lastBackupTime', value: now.toISOString() });
-        toast.success('Automatic backup completed!');
+        toast.success('Backup completed!', { id: toastId });
 
       } catch (error) {
-        console.error("Auto-backup failed:", error);
-        toast.error('Automatic backup failed.');
+        console.error("Backup failed:", error);
+        toast.error(`Backup failed: ${error.message}`, { id: toastId });
       }
     } else {
       console.log("No need to backup yet. Last backup was recent.");
+      if (force) {
+          toast.success('No backup needed, already backed up within 24 hours.');
+      }
     }
   };
 
-  // Add the new function to the return object
   return { settings, updateSetting, setPassword, hashPassword, archiveOldData, runAutoBackup };
 }

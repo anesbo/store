@@ -4,9 +4,10 @@ import { useSettings, useSetting } from '../hooks/useSettings';
 import { db } from '../lib/db';
 import styles from './SettingsPage.module.css';
 import Button from '../components/ui/Button.jsx';
+import toast from 'react-hot-toast';
 
 function SettingsPage() {
-  const { updateSetting, setPassword, archiveOldData } = useSettings();
+  const { updateSetting, setPassword, archiveOldData, runAutoBackup } = useSettings();
   const staleDaysSetting = useSetting('staleDays', 20);
   
   const [staleDays, setStaleDays] = useState(20);
@@ -20,13 +21,15 @@ function SettingsPage() {
 
   const handleSaveStaleDays = () => {
     updateSetting('staleDays', parseInt(staleDays, 10));
+    // Toast is already in the 'updateSetting' hook
   };
   
   const handleSetPassword = () => {
     if (newPassword !== confirmPassword) {
-      return alert("Passwords do not match.");
+      return toast.error("Passwords do not match.");
     }
     setPassword(newPassword);
+    toast.success("Password set successfully!");
     setNewPassword('');
     setConfirmPassword('');
   };
@@ -45,17 +48,16 @@ function SettingsPage() {
     link.href = jsonString;
     link.download = `${exportFileName}.json`;
     link.click();
+    toast.success("Data exported successfully!");
   };
 
   const handleImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
-    if (!window.confirm("WARNING: Importing a file will overwrite ALL existing data. Are you sure you want to continue?")) {
-      event.target.value = '';
+    if (!window.confirm("WARNING: Importing a file will overwrite ALL existing data. Are you sure?")) {
+      event.target.value = ''; 
       return;
     }
-
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
@@ -67,11 +69,10 @@ function SettingsPage() {
           await Promise.all(tablesToImport.map(key => db[key].clear()));
           await Promise.all(tablesToImport.map(key => db[key].bulkAdd(data[key])));
         });
-
-        alert("Data imported successfully! The page will now reload.");
-        window.location.reload();
+        toast.success("Data imported! Page will now reload.");
+        setTimeout(() => window.location.reload(), 1500);
       } catch (error) {
-        alert("Failed to import file. It may be corrupted or have an invalid format.");
+        toast.error("Failed to import file. It may be corrupted.");
         console.error(error);
       }
     };
@@ -112,6 +113,14 @@ function SettingsPage() {
             <p className={styles.warning}>Warning: This will overwrite ALL existing data.</p>
             <input id="importFile" type="file" accept=".json" onChange={handleImport} />
           </div>
+
+          <div style={{marginTop: '1rem'}}>
+            <label className={styles.label}>Automatic Cloud Backup</label>
+            <p>Runs automatically every 24 hours when the app is opened. You can also trigger it manually to test.</p>
+            <Button onClick={() => runAutoBackup({ force: true })} variant="edit">
+              Run Backup Now
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -130,7 +139,7 @@ function SettingsPage() {
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>Archive Data</h2>
         <div className={styles.settingItem}>
-          <p className={styles.label}>Move records older than one year into a permanent archive. This can improve daily performance while keeping your data safe.</p>
+          <p className={styles.label}>Move records older than one year into a permanent archive to improve daily performance.</p>
           <Button onClick={archiveOldData} variant="delete">
             Archive Old Records
           </Button>
