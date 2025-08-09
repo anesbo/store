@@ -5,6 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import ProtectedLayout from './components/layout/ProtectedLayout.jsx';
 import Navbar from './components/layout/Navbar.jsx';
 import styles from './App.module.css';
+import { useEffect } from 'react';
+import { useSettings } from './hooks/useSettings';
 
 // Import all your pages
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -18,6 +20,23 @@ import SuppliersPage from './pages/SuppliersPage.jsx';
 
 
 function App() {
+
+    const { runAutoBackup } = useSettings();
+  
+    useEffect(() => {
+      // 1. Run once on initial load
+      runAutoBackup();
+  
+      // 2. Then, set up an interval to check again periodically
+      const intervalId = setInterval(() => {
+        console.log("Running periodic backup check...");
+        runAutoBackup();
+      }, 900000); // Checks every 60 seconds (60 * 1000 ms)
+  
+      // 3. Clean up the interval when the app closes to prevent memory leaks
+      return () => clearInterval(intervalId);
+    }, [runAutoBackup]);
+
   return (
     <BrowserRouter>
       <AuthProvider>
