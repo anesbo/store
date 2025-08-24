@@ -7,6 +7,7 @@ import Navbar from './components/layout/Navbar.jsx';
 import styles from './App.module.css';
 import { useEffect } from 'react';
 import { useSettings } from './hooks/useSettings';
+import { useTranslation } from 'react-i18next';
 
 // Import all your pages
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -20,7 +21,7 @@ import SuppliersPage from './pages/SuppliersPage.jsx';
 
 
 function App() {
-
+  const { i18n } = useTranslation();
     const { runAutoBackup } = useSettings();
   
     useEffect(() => {
@@ -36,6 +37,9 @@ function App() {
       // 3. Clean up the interval when the app closes to prevent memory leaks
       return () => clearInterval(intervalId);
     }, [runAutoBackup]);
+    useEffect(() => {
+      document.documentElement.dir = i18n.dir();
+    }, [i18n, i18n.language]);
 
   return (
     <BrowserRouter>

@@ -4,6 +4,7 @@ import { useExpenses } from '../hooks/useExpenses.js';
 import { useSuppliers } from '../hooks/useSuppliers.js';
 import styles from './ExpensesPage.module.css';
 import Button from '../components/ui/Button.jsx';
+import { useTranslation } from 'react-i18next';
 import { FaEdit, FaTrash, FaSave, FaTimes, FaPlus } from 'react-icons/fa';
 
 const EXPENSE_TYPES = ['Salary', 'Rent', 'Utilities', 'Marketing', 'Supplies', 'Other'];
@@ -14,6 +15,8 @@ function ExpensesPage() {
   const [newExpense, setNewExpense] = useState({ description: '', amount: '', date: '', dueDate: '', type: 'Other', supplierId: '', status: 'Paid' });
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
+  const { t } = useTranslation();
+  const expenseTypes = t('expense_types', { returnObjects: true });
 
   const handleNewExpenseChange = (e) => {
     setNewExpense({ ...newExpense, [e.target.name]: e.target.value });
@@ -56,42 +59,42 @@ function ExpensesPage() {
   
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Manage Expenses</h1>
+      <h1 className={styles.title}>{t('expenses.title')}</h1>
 
       <div className={styles.card}>
-        <h2 className={styles.formTitle}>Add New Expense</h2>
+        <h2 className={styles.formTitle}>{t('expenses.add_new')}</h2>
         <form onSubmit={handleAddSubmit} className={styles.formGrid}>
-          <input name="description" type="text" placeholder="Description" value={newExpense.description} onChange={handleNewExpenseChange} className={styles.formInput} required />
-          <input name="amount" type="number" placeholder="Amount ($)" value={newExpense.amount} onChange={handleNewExpenseChange} className={styles.formInput} required step="0.01"/>
+          <input name="description" type="text" placeholder={t('common.description')} value={newExpense.description} onChange={handleNewExpenseChange} className={styles.formInput} required />
+          <input name="amount" type="number" placeholder={t('common.amount')} value={newExpense.amount} onChange={handleNewExpenseChange} className={styles.formInput} required step="0.01"/>
           <select name="type" value={newExpense.type} onChange={handleNewExpenseChange} className={styles.formInput}>
-            {EXPENSE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+            {Object.entries(expenseTypes).map(([key, value]) => <option key={key} value={key}>{value}</option>)}
           </select>
           <select name="supplierId" value={newExpense.supplierId} onChange={handleNewExpenseChange} className={styles.formInput}>
-            <option value="">-- No Supplier --</option>
+            <option value="">{t('expenses.no_supplier')}</option>
             {suppliers?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
-          <input name="date" type="date" title="Payment Date" value={newExpense.date} onChange={handleNewExpenseChange} className={styles.formInput} required />
-          <input name="dueDate" type="date" title="Due Date" value={newExpense.dueDate} onChange={handleNewExpenseChange} className={styles.formInput} />
+          <input name="date" type="date" title={t('expenses.payment_date')} value={newExpense.date} onChange={handleNewExpenseChange} className={styles.formInput} required />
+          <input name="dueDate" type="date" title={t('common.due_date')} value={newExpense.dueDate} onChange={handleNewExpenseChange} className={styles.formInput} />
           <select name="status" value={newExpense.status} onChange={handleNewExpenseChange} className={styles.formInput}>
-            <option value="Paid">Paid</option>
-            <option value="Unpaid">Unpaid (Creates Debt)</option>
+            <option value="Paid">{t('expenses.status_paid')}</option>
+            <option value="Unpaid">{t('expenses.status_unpaid')}</option>
           </select>
-          <Button type="submit" variant="save"><FaPlus /> Add Expense</Button>
+          <Button type="submit" variant="save"><FaPlus /> {t('expenses.add_button')}</Button>
         </form>
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.formTitle}>Expense History</h2>
+        <h2 className={styles.formTitle}>{t('expenses.history')}</h2>
         <div style={{ overflowX: 'auto' }}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Amount</th>
-                <th style={{ width: '150px' }}>Actions</th>
+                <th>{t('common.date')}</th>
+                <th>{t('common.description')}</th>
+                <th>{t('common.type')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('common.amount')}</th>
+                <th style={{ width: '150px' }}>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -103,18 +106,18 @@ function ExpensesPage() {
                       <td><input type="text" name="description" value={editFormData.description} onChange={handleEditFormChange} className={styles.formInput} /></td>
                       <td>
                         <select name="type" value={editFormData.type} onChange={handleEditFormChange} className={styles.formInput}>
-                          {EXPENSE_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
+                          {Object.entries(expenseTypes).map(([key, value]) => <option key={key} value={key}>{value}</option>)}
                         </select>
                       </td>
                        <td>
                         <select name="status" value={editFormData.status} onChange={handleEditFormChange} className={styles.formInput}>
-                            <option value="Paid">Paid</option>
-                            <option value="Unpaid">Unpaid</option>
+                            <option value="Paid">{t('expenses.status_paid')}</option>
+                            <option value="Unpaid">{t('expenses.status_unpaid_short')}</option>
                         </select>
                       </td>
                       <td><input type="number" name="amount" value={editFormData.amount} onChange={handleEditFormChange} className={styles.formInput} /></td>
                       <td>
-                        <div style={{ display: 'flex', gap: '8' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
                           <Button variant="save" onClick={handleUpdateClick}><FaSave /></Button>
                           <Button variant="cancel" onClick={() => setEditingId(null)}><FaTimes /></Button>
                         </div>
@@ -124,11 +127,11 @@ function ExpensesPage() {
                     <>
                       <td>{new Date(expense.date).toLocaleDateString()}</td>
                       <td>{expense.description}</td>
-                      <td>{expense.type}</td>
-                      <td style={{fontWeight: 'bold', color: expense.status === 'Unpaid' ? 'red' : 'green'}}>{expense.status}</td>
+                      <td>{t(`expense_types.${expense.type}`, expense.type)}</td>
+                      <td style={{fontWeight: 'bold', color: expense.status === 'Unpaid' ? 'red' : 'green'}}>{t(`expenses.status_${expense.status.toLowerCase()}`)}</td>
                       <td>${expense.amount.toFixed(2)}</td>
                       <td>
-                        <div style={{ display: 'flex', gap: '8' }}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
                           <Button variant="edit" onClick={() => handleEditClick(expense)}><FaEdit /></Button>
                           <Button variant="delete" onClick={() => deleteExpense(expense.id)}><FaTrash /></Button>
                         </div>
@@ -139,7 +142,7 @@ function ExpensesPage() {
               ))}
             </tbody>
           </table>
-          {expenses?.length === 0 && <p className={styles.emptyMessage}>No expenses recorded yet.</p>}
+          {expenses?.length === 0 && <p className={styles.emptyMessage}>{t('expenses.no_expenses_yet')}</p>}
         </div>
       </div>
     </div>

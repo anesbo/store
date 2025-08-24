@@ -1,6 +1,7 @@
 // src/pages/SuppliersPage.jsx
 import React, { useState, useMemo } from 'react';
 import { useSuppliers } from '../hooks/useSuppliers';
+import { useTranslation } from 'react-i18next';
 import { useExpenses } from '../hooks/useExpenses';
 import styles from './SuppliersPage.module.css';
 import Button from '../components/ui/Button.jsx';
@@ -9,6 +10,7 @@ import { FaEdit, FaTrash, FaSave, FaTimes, FaPlus, FaChevronDown, FaChevronUp } 
 function SuppliersPage() {
   const { suppliers, addSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const { expenses, updateExpense, clearSupplierDebt } = useExpenses();
+  const { t } = useTranslation();
   
   const [newSupplier, setNewSupplier] = useState({ name: '', contact: '', phone: '' });
   const [editingId, setEditingId] = useState(null);
@@ -77,29 +79,29 @@ function SuppliersPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Manage Suppliers</h1>
+      <h1 className={styles.title}>{t('suppliers.title')}</h1>
 
       <div className={styles.card}>
-        <h2 className={styles.formTitle}>Add New Supplier</h2>
+        <h2 className={styles.formTitle}>{t('suppliers.add_new')}</h2>
         <form onSubmit={handleAddSubmit} className={styles.formGrid}>
-          <input name="name" type="text" placeholder="Supplier Name" value={newSupplier.name} onChange={handleNewSupplierChange} className={styles.formInput} required />
-          <input name="contact" type="text" placeholder="Contact Person (Optional)" value={newSupplier.contact} onChange={handleNewSupplierChange} className={styles.formInput} />
-          <input name="phone" type="tel" placeholder="Phone Number (Optional)" value={newSupplier.phone} onChange={handleNewSupplierChange} className={styles.formInput} />
-          <Button type="submit" variant="save"><FaPlus /> Add Supplier</Button>
+          <input name="name" type="text" placeholder={t('common.supplier_name')} value={newSupplier.name} onChange={handleNewSupplierChange} className={styles.formInput} required />
+          <input name="contact" type="text" placeholder={t('common.contact_person_optional')} value={newSupplier.contact} onChange={handleNewSupplierChange} className={styles.formInput} />
+          <input name="phone" type="tel" placeholder={t('common.phone_number_optional')} value={newSupplier.phone} onChange={handleNewSupplierChange} className={styles.formInput} />
+          <Button type="submit" variant="save"><FaPlus /> {t('suppliers.add_button')}</Button>
         </form>
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.formTitle}>Supplier List</h2>
+        <h2 className={styles.formTitle}>{t('suppliers.list_title')}</h2>
         <div style={{ overflowX: 'auto' }}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Supplier Name</th>
-                <th>Current Debt</th>
-                <th>Contact Person</th>
-                <th>Phone Number</th>
-                <th style={{ width: '320px' }}>Actions</th>
+                <th>{t('common.supplier_name')}</th>
+                <th>{t('suppliers.current_debt')}</th>
+                <th>{t('common.contact_person')}</th>
+                <th>{t('common.phone_number')}</th>
+                <th style={{ width: '320px' }}>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,8 +120,8 @@ function SuppliersPage() {
                         <td><input type="tel" name="phone" value={editFormData.phone} onChange={handleEditFormChange} className={styles.formInput} /></td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            <Button variant="save" onClick={handleUpdateClick}><FaSave /></Button>
-                            <Button variant="cancel" onClick={() => setEditingId(null)}><FaTimes /></Button>
+                            <Button variant="save" onClick={handleUpdateClick}><FaSave /> {t('common.save')}</Button>
+                            <Button variant="cancel" onClick={() => setEditingId(null)}><FaTimes /> {t('common.cancel')}</Button>
                           </div>
                         </td>
                       </>
@@ -132,9 +134,9 @@ function SuppliersPage() {
                         <td>
                           <div style={{ display: 'flex', gap: '8px' }}>
                             <Button variant="edit" onClick={() => handleToggleDetails(supplier.id)} disabled={debt === 0}>
-                              {isExpanded ? <FaChevronUp/> : <FaChevronDown/>} Details
+                              {isExpanded ? <FaChevronUp/> : <FaChevronDown/>} {t('common.details')}
                             </Button>
-                            <Button variant="save" onClick={() => clearSupplierDebt(supplier.id)} disabled={debt === 0}>Clear All</Button>
+                            <Button variant="save" onClick={() => clearSupplierDebt(supplier.id)} disabled={debt === 0}>{t('suppliers.clear_all_debt')}</Button>
                             <Button variant="edit" onClick={() => handleEditClick(supplier)}><FaEdit /></Button>
                             <Button variant="delete" onClick={() => deleteSupplier(supplier.id)}><FaTrash /></Button>
                           </div>
@@ -145,22 +147,22 @@ function SuppliersPage() {
                   isExpanded && (
                     <tr key={`${supplier.id}-details`} className={styles.detailsRow}>
                       <td colSpan="5">
-                        <h4 className={styles.detailsTitle}>Unpaid Expenses</h4>
+                        <h4 className={styles.detailsTitle}>{t('suppliers.unpaid_expenses')}</h4>
                         {unpaidExpenses.length > 0 ? (
                             unpaidExpenses.map(expense => (
                                 <div key={expense.id} className={styles.detailsItem}>
                                     <div>
                                     <span>{expense.description}</span>
-                                    <small>Due: {new Date(expense.dueDate).toLocaleDateString()}</small>
+                                    <small>{t('common.due')}: {new Date(expense.dueDate).toLocaleDateString()}</small>
                                     </div>
                                     <div className={styles.detailsActions}>
                                     <span>${expense.amount.toFixed(2)}</span>
-                                    <Button variant="save" onClick={() => handleMarkAsPaid(expense.id)}>Mark as Paid</Button>
+                                    <Button variant="save" onClick={() => handleMarkAsPaid(expense.id)}>{t('suppliers.mark_as_paid')}</Button>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <p>No unpaid expenses for this supplier.</p>
+                            <p>{t('suppliers.no_unpaid_expenses')}</p>
                         )}
                       </td>
                     </tr>
@@ -169,7 +171,7 @@ function SuppliersPage() {
               })}
             </tbody>
           </table>
-          {suppliers?.length === 0 && <p className={styles.emptyMessage}>No suppliers added yet.</p>}
+          {suppliers?.length === 0 && <p className={styles.emptyMessage}>{t('suppliers.no_suppliers_yet')}</p>}
         </div>
       </div>
     </div>

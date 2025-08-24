@@ -6,6 +6,7 @@ import Button from '../components/ui/Button'; // Assuming this file exists from 
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import styles from './InventoryPage.module.css';
+import { useTranslation } from 'react-i18next';
 import { FaEdit, FaTrash, FaSave, FaTimes, FaPlus } from 'react-icons/fa';
 
 // 2. The Button component function has been REMOVED from here. It must be in its own file.
@@ -13,6 +14,7 @@ import { FaEdit, FaTrash, FaSave, FaTimes, FaPlus } from 'react-icons/fa';
 function InventoryPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
   const { categories } = useCategories();
+  const { t } = useTranslation(); 
 
   const [newProduct, setNewProduct] = useState({ name: '', purchasePrice: '', sellingPrice: '', stock: '', category: '' });
   const [editingId, setEditingId] = useState(null);
@@ -67,45 +69,42 @@ function InventoryPage() {
     return <div>Loading inventory...</div>; // Or show a spinner component
   }
   return (
-    
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Inventory Management</h1>
+      <h1 className={styles.title}>{t('inventory.title')}</h1>
 
       {/* Add Product Form */}
       <div className={styles.card}>
-        <h2 className={styles.formTitle}>Add New Product</h2>
+        <h2 className={styles.formTitle}>{t('inventory.add_product')}</h2>
         <form onSubmit={handleAddSubmit} className={styles.formGrid}>
-          <input name="name" type="text" placeholder="Product Name" value={newProduct.name} onChange={handleNewProductChange} className={styles.formInput} />
-          <input name="purchasePrice" type="number" placeholder="Purchase Price ($)" value={newProduct.purchasePrice} onChange={handleNewProductChange} className={styles.formInput} />
-          <input name="sellingPrice" type="number" placeholder="Selling Price ($)" value={newProduct.sellingPrice} onChange={handleNewProductChange} className={styles.formInput} />
-          <input name="stock" type="number" placeholder="Stock Quantity" value={newProduct.stock} onChange={handleNewProductChange} className={styles.formInput} />
+          <input name="name" type="text" placeholder={t('inventory.product_name')} value={newProduct.name} onChange={handleNewProductChange} className={styles.formInput} />
+          <input name="purchasePrice" type="number" placeholder={t('inventory.purchase_price')} value={newProduct.purchasePrice} onChange={handleNewProductChange} className={styles.formInput} />
+          <input name="sellingPrice" type="number" placeholder={t('inventory.selling_price')} value={newProduct.sellingPrice} onChange={handleNewProductChange} className={styles.formInput} />
+          <input name="stock" type="number" placeholder={t('inventory.stock_quantity')} value={newProduct.stock} onChange={handleNewProductChange} className={styles.formInput} />
           <select name="category" value={newProduct.category} onChange={handleNewProductChange} className={styles.formInput}>
-            <option value="">-- Select a Category --</option>
+            <option value="">-- {t('common.select_category')} --</option>
             {categories?.map(cat => (<option key={cat.id} value={cat.name}>{cat.name}</option>))}
           </select>
-          {/* 4. FIXED: Use the reusable Button component */}
-          <Button type="submit" variant="save"><FaPlus /> Add Product</Button>
+          <Button type="submit" variant="save"><FaPlus /> {t('common.add')} {t('inventory.product')}</Button>
         </form>
       </div>
 
       {/* Product List */}
-      {/* 5. RESTRUCTURED: Removed the extra nested card */}
       <div className={styles.card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 className={styles.formTitle}>Product List</h2>
-          <input type="text" placeholder="🔎 Search by name or category..." value={searchTerm} onChange={handleSearchChange} className={styles.formInput} style={{ maxWidth: '300px' }}/>
+          <h2 className={styles.formTitle}>{t('inventory.product_list')}</h2>
+          <input type="text" placeholder={t('common.search_by_cat')} value={searchTerm} onChange={handleSearchChange} className={styles.formInput} style={{ maxWidth: '300px' }}/>
         </div>
 
         <div style={{ overflowX: 'auto' }}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Stock</th>
-                <th>Purchase Price</th>
-                <th>Selling Price</th>
-                <th style={{ width: '220px' }}>Actions</th>
+                <th>{t('common.name')}</th>
+                <th>{t('common.category')}</th>
+                <th>{t('common.stock')}</th>
+                <th>{t('inventory.purchase_price')}</th>
+                <th>{t('inventory.selling_price')}</th>
+                <th style={{ width: '220px' }}>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -125,8 +124,8 @@ function InventoryPage() {
                       <td><input type="number" name="sellingPrice" value={editFormData.sellingPrice} onChange={handleEditFormChange} className={styles.formInput} style={{ maxWidth: '100px' }} /></td>
                       <td>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <Button variant="save" onClick={handleUpdateClick}><FaSave />Save</Button>
-                          <Button variant="cancel" onClick={handleCancelClick}><FaTimes />Cancel</Button>
+                          <Button variant="save" onClick={handleUpdateClick}><FaSave />{t('common.save')}</Button>
+                          <Button variant="cancel" onClick={handleCancelClick}><FaTimes />{t('common.cancel')}</Button>
                         </div>
                       </td>
                     </>
@@ -140,8 +139,8 @@ function InventoryPage() {
                       <td>${product.sellingPrice?.toFixed(2)}</td>
                       <td>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <Button variant="edit" onClick={() => handleEditClick(product)}><FaEdit />Edit</Button>
-                          <Button variant="delete" onClick={() => deleteProduct(product.id)}><FaTrash />Delete</Button>
+                          <Button variant="edit" onClick={() => handleEditClick(product)}><FaEdit />{t('common.edit')}</Button>
+                          <Button variant="delete" onClick={() => deleteProduct(product.id)}><FaTrash />{t('common.delete')}</Button>
                         </div>
                       </td>
                     </>
@@ -152,12 +151,12 @@ function InventoryPage() {
           </table>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
-          <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>&larr; Previous</button>
-          <span>Page {currentPage} of {totalPages > 0 ? totalPages : 1}</span>
-          <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage >= totalPages}>Next &rarr;</button>
+          <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1}>{t('common.previous')}</button>
+          <span>{t('common.page_of', {currentPage: currentPage, totalPages: totalPages > 0 ? totalPages : 1})}</span>
+          <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage >= totalPages}>{t('common.next')}</button>
         </div>
-        {filteredProducts.length === 0 && searchTerm && <p className={styles.emptyMessage}>No products match your search.</p>}
-        {!products?.length && <p className={styles.emptyMessage}>No products yet. Add one above!</p>}
+        {filteredProducts.length === 0 && searchTerm && <p className={styles.emptyMessage}>{t('inventory.no_products_match')}</p>}
+        {!products?.length && <p className={styles.emptyMessage}>{t('inventory.no_products_yet')}</p>}
       </div>
     </div>
   );

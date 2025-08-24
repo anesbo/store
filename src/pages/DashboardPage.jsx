@@ -8,6 +8,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { useSuppliers } from '../hooks/useSuppliers';
 import { useCategories } from '../hooks/useCategories';
 import styles from './DashboardPage.module.css';
+import { useTranslation } from 'react-i18next';
 import { FaDollarSign, FaRegCalendarAlt, FaRegCalendarCheck, FaRegClock, FaBoxes, FaChartPie, FaChartBar } from 'react-icons/fa';
 
 const ITEMS_PER_PAGE = 5;
@@ -40,6 +41,7 @@ function DashboardPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [expandedSaleId, setExpandedSaleId] = useState(null);
+  const { t } = useTranslation();
   
   useEffect(() => {
     setHistoryPage(1);
@@ -165,40 +167,40 @@ function DashboardPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Dashboard</h1>
+      <h1 className={styles.title}>{t('dashboard.title')}</h1>
       
       <div className={styles.statsGrid}>
-        <StatCard icon={<FaRegClock />} title="Revenue Today" value={`$${dashboardData.todayRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.todayProfit.toFixed(2)}`} color="#22c55e" />
-        <StatCard icon={<FaRegCalendarAlt />} title="Revenue This Week" value={`$${dashboardData.weekRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.weekProfit.toFixed(2)}`} color="#3b82f6" />
-        <StatCard icon={<FaRegCalendarCheck />} title="Revenue This Month" value={`$${dashboardData.monthRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.monthProfit.toFixed(2)}`} color="#eab308" />
+        <StatCard icon={<FaRegClock />} title={t('dashboard.revenue_today')} value={`$${dashboardData.todayRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.todayProfit.toFixed(2)}`} color="#22c55e" />
+        <StatCard icon={<FaRegCalendarAlt />} title={t('dashboard.revenue_week')} value={`$${dashboardData.weekRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.weekProfit.toFixed(2)}`} color="#3b82f6" />
+        <StatCard icon={<FaRegCalendarCheck />} title={t('dashboard.revenue_month')} value={`$${dashboardData.monthRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.monthProfit.toFixed(2)}`} color="#eab308" />
       </div>
       
       <div className={styles.statsGrid} style={{marginTop: '2rem'}}>
-        <StatCard icon={<FaChartBar />} title="Income This Year" value={`$${dashboardData.yearRevenue.toFixed(2)}`} secondaryValue={`Profit: $${dashboardData.yearProfit.toFixed(2)}`} color="#8b5cf6" />
-        <StatCard icon={<FaChartPie />} title="Inventory Value" value={`$${dashboardData.totalCapitalSelling.toFixed(2)}`} secondaryValue={`Cost: $${dashboardData.totalCapitalPurchase.toFixed(2)}`} color="#ec4899" />
-        <StatCard icon={<FaBoxes />} title="Total Products" value={dashboardData.productCount} secondaryValue={`${dashboardData.categoryCount} Categories`} color="#6366f1" />
+        <StatCard icon={<FaChartBar />} title={t('dashboard.income_year')} value={`$${dashboardData.yearRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.yearProfit.toFixed(2)}`} color="#8b5cf6" />
+        <StatCard icon={<FaChartPie />} title={t('dashboard.inventory_value')} value={`$${dashboardData.totalCapitalSelling.toFixed(2)}`} secondaryValue={`${t('common.cost')}: $${dashboardData.totalCapitalPurchase.toFixed(2)}`} color="#ec4899" />
+        <StatCard icon={<FaBoxes />} title={t('dashboard.product_count')} value={dashboardData.productCount} secondaryValue={t('dashboard.category_count', {count: dashboardData.categoryCount})} color="#6366f1" />
       </div>
 
       <div className={styles.bottomGrid}>
         <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Recent Sales</h2>
-          <ul>{recentSalesPagination.paginatedItems.map(s => <li key={s.id} className={styles.listItem}><div><span>{s.items.length} items</span><small style={{display:'block',color:'#666'}}>{new Date(s.timestamp).toLocaleDateString()}</small></div><strong>${s.totalAmount.toFixed(2)}</strong></li>)}</ul>
+          <h2 className={styles.cardTitle}>{t('dashboard.recent_sales')}</h2>
+          <ul>{recentSalesPagination.paginatedItems.map(s => <li key={s.id} className={styles.listItem}><div><span>{t('dashboard.items_sold', {count: s.items.length})}</span><small style={{display:'block',color:'#666'}}>{new Date(s.timestamp).toLocaleDateString()}</small></div><strong>${s.totalAmount.toFixed(2)}</strong></li>)}</ul>
           {renderPaginationControls(salesPage, recentSalesPagination.totalPages, setSalesPage)}
         </div>
         <div className={styles.card}>
-          <h2 className={styles.cardTitle} style={{color: '#ef4444'}}>Low Stock Alerts</h2>
-          <ul>{lowStockPagination.paginatedItems.map(p => <li key={p.id} className={styles.listItem}><span>{p.name}</span><strong>{p.stock} left</strong></li>)}</ul>
+          <h2 className={styles.cardTitle} style={{color: '#ef4444'}}>{t('dashboard.low_stock_alerts')}</h2>
+          <ul>{lowStockPagination.paginatedItems.map(p => <li key={p.id} className={styles.listItem}><span>{p.name}</span><strong style={{color: '#ef4444'}}>{t('dashboard.only_left', {count: p.stock})}</strong></li>)}</ul>
           {renderPaginationControls(lowStockPage, lowStockPagination.totalPages, setLowStockPage)}
         </div>
         <div className={styles.card}>
-          <h2 className={styles.cardTitle} style={{color: '#f97316'}}>Stale Products</h2>
-          <p style={{fontSize: '0.8rem', marginTop: '-1rem', color: '#666'}}>Not sold in last {STALE_PRODUCT_DAYS} days.</p>
+          <h2 className={styles.cardTitle} style={{color: '#f97316'}}>{t('dashboard.stale_products')}</h2>
+          <p style={{fontSize: '0.8rem', marginTop: '-1rem', color: '#666'}}>{t('dashboard.not_sold_in_days', {count: STALE_PRODUCT_DAYS})}</p>
           <ul>{stalePagination.paginatedItems.map(p => <li key={p.id} className={styles.listItem}><span>{p.name}</span><small>No recent sales</small></li>)}</ul>
           {renderPaginationControls(stalePage, stalePagination.totalPages, setStalePage)}
         </div>
         <div className={styles.card}>
-            <h2 className={styles.cardTitle} style={{ color: '#991b1b' }}>🚨 Unpaid Expenses</h2>
-            <p style={{fontSize: '0.zrem', marginTop: '-1rem', color: '#666'}}>All current outstanding debts.</p>
+            <h2 className={styles.cardTitle} style={{ color: '#991b1b' }}>🚨 {t('dashboard.unpaid_expenses')}</h2>
+            <p style={{fontSize: '0.8rem', marginTop: '-1rem', color: '#666'}}>{t('dashboard.all_outstanding_debts')}</p>
             <ul>
                 {dashboardData.unpaidDebts.map(expense => (
                 <li key={expense.id} className={styles.listItem}>
@@ -209,25 +211,24 @@ function DashboardPage() {
                     <strong style={{color: '#991b1b'}}>${expense.amount.toFixed(2)}</strong>
                 </li>
                 ))}
-                {dashboardData.unpaidDebts.length === 0 && <p>No unpaid expenses. Good job!</p>}
             </ul>
         </div>
       </div>
 
       <div className={`${styles.card} ${styles.historyCard}`}>
-        <h2 className={styles.cardTitle}>Sales History</h2>
+        <h2 className={styles.cardTitle}>{t('dashboard.sales_history')}</h2>
         <div className={styles.dateFilter}>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
-          <span>to</span>
+          <span>{t('common.to')}</span>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </div>
         <div className={styles.periodSummary}>
-          Revenue: <strong>${salesHistoryData.periodRevenue.toFixed(2)}</strong> | 
-          Profit: <strong>${salesHistoryData.periodProfit.toFixed(2)}</strong>
+          {t('common.revenue')}: <strong>${salesHistoryData.periodRevenue.toFixed(2)}</strong> | 
+          {t('common.profit')}: <strong>${salesHistoryData.periodProfit.toFixed(2)}</strong>
         </div>
         <div style={{overflowX: 'auto'}}>
           <table className={styles.historyTable}>
-            <thead><tr><th>Date</th><th>Items</th><th>Total</th><th>Details</th></tr></thead>
+            <thead><tr><th>{t('common.date')}</th><th>{t('common.items')}</th><th>{t('common.total')}</th><th>{t('common.details')}</th></tr></thead>
             <tbody>
               {historyPagination.paginatedItems.map(sale => ([
                 <tr key={sale.id}>
@@ -236,7 +237,7 @@ function DashboardPage() {
                   <td>${sale.totalAmount.toFixed(2)}</td>
                   <td>
                     <button onClick={() => handleToggleSaleDetails(sale.id)} className={styles.detailsButton}>
-                      {expandedSaleId === sale.id ? 'Hide' : 'Show'}
+                      {expandedSaleId === sale.id ? t('common.hide') : t('common.show')}
                     </button>
                   </td>
                 </tr>,

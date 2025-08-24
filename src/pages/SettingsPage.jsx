@@ -1,12 +1,16 @@
 // src/pages/SettingsPage.jsx
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSettings, useSetting } from '../hooks/useSettings';
 import { db } from '../lib/db';
+import { useTranslation } from 'react-i18next';
 import styles from './SettingsPage.module.css';
 import Button from '../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
 
+
 function SettingsPage() {
+  const { t } = useTranslation();
   const { updateSetting, setPassword, archiveOldData, runAutoBackup } = useSettings();
   const staleDaysSetting = useSetting('staleDays', 20);
   
@@ -15,6 +19,11 @@ function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [exportFileName, setExportFileName] = useState(`store-backup-${new Date().toISOString().split('T')[0]}`);
 
+  const { i18n } = useTranslation(); // Keep this one
+
+  const changeLanguage = (lng) => { // Keep this one
+    i18n.changeLanguage(lng);
+  };
   useEffect(() => {
     setStaleDays(staleDaysSetting);
   }, [staleDaysSetting]);
@@ -80,69 +89,69 @@ function SettingsPage() {
     event.target.value = '';
   };
 
-  return (
+   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Settings</h1>
+      <h1 className={styles.title}>{t('settings.title')}</h1>
       
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>General</h2>
+        <h2 className={styles.cardTitle}>{t('settings.general')}</h2>
         <div className={styles.settingItem}>
-          <label htmlFor="staleDays" className={styles.label}>Stale Product Duration (days)</label>
+          <label htmlFor="staleDays" className={styles.label}>{t('settings.stale_duration')}</label>
           <input id="staleDays" type="number" value={staleDays} onChange={e => setStaleDays(e.target.value)} className={styles.input} />
         </div>
-        <Button onClick={handleSaveStaleDays} variant="save">Save Changes</Button>
+        <Button onClick={handleSaveStaleDays} variant="save">{t('settings.save_changes')}</Button>
       </div>
       
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Data Management</h2>
+        <h2 className={styles.cardTitle}>{t('settings.language')}</h2>
+        <div className={styles.settingItem}>
+            <label className={styles.label}>{t('settings.select_language')}</label>
+            <select className={styles.input} onChange={(e) => changeLanguage(e.target.value)} value={i18n.language}>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="ar">العربية</option>
+            </select>
+        </div>
+      </div>
+
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>{t('settings.data_management')}</h2>
         <div className={styles.dataActions}>
           <div className={styles.settingItem}>
-            <label htmlFor="exportFile" className={styles.label}>Export Filename</label>
-            <input 
-              id="exportFile"
-              type="text" 
-              value={exportFileName}
-              onChange={e => setExportFileName(e.target.value)}
-              className={styles.input}
-            />
+            <label htmlFor="exportFile" className={styles.label}>{t('settings.export_filename')}</label>
+            <input id="exportFile" type="text" value={exportFileName} onChange={e => setExportFileName(e.target.value)} className={styles.input} />
           </div>
-          <Button onClick={handleExport} variant="edit">Export Data to JSON</Button>
-          
+          <Button onClick={handleExport} variant="edit">{t('settings.export_button')}</Button>
           <div style={{marginTop: '1rem'}}>
-            <label htmlFor="importFile" className={styles.label}>Import Data from JSON</label>
-            <p className={styles.warning}>Warning: This will overwrite ALL existing data.</p>
+            <label htmlFor="importFile" className={styles.label}>{t('settings.import_button')}</label>
+            <p className={styles.warning}>{t('settings.warning_overwrite')}</p>
             <input id="importFile" type="file" accept=".json" onChange={handleImport} />
           </div>
-
           <div style={{marginTop: '1rem'}}>
-            <label className={styles.label}>Automatic Cloud Backup</label>
-            <p>Runs automatically every 24 hours when the app is opened. You can also trigger it manually to test.</p>
-            <Button onClick={() => runAutoBackup({ force: true })} variant="edit">
-              Run Backup Now
-            </Button>
+            <label className={styles.label}>{t('settings.auto_backup')}</label>
+            <p>{t('settings.auto_backup_desc')}</p>
+            <Button onClick={() => runAutoBackup({ force: true })} variant="edit">{t('settings.run_backup_now')}</Button>
           </div>
         </div>
       </div>
 
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Security</h2>
+        <h2 className={styles.cardTitle}>{t('settings.security')}</h2>
         <div className={styles.settingItem}>
-          <label className={styles.label}>Set or Change Password</label>
-          <input type="password" placeholder="New Password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className={styles.input} />
+          <label className={styles.label}>{t('settings.set_password')}</label>
+          <input type="password" placeholder={t('settings.new_password')} value={newPassword} onChange={e => setNewPassword(e.target.value)} className={styles.input} />
         </div>
         <div className={styles.settingItem}>
-          <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={styles.input} />
+          <input type="password" placeholder={t('settings.confirm_password')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className={styles.input} />
         </div>
-        <Button onClick={handleSetPassword} variant="save">Set Password</Button>
+        <Button onClick={handleSetPassword} variant="save">{t('settings.set_password_button')}</Button>
       </div>
       
       <div className={styles.card}>
-        <h2 className={styles.cardTitle}>Archive Data</h2>
+        <h2 className={styles.cardTitle}>{t('settings.archive_data')}</h2>
         <div className={styles.settingItem}>
-          <p className={styles.label}>Move records older than one year into a permanent archive to improve daily performance.</p>
-          <Button onClick={archiveOldData} variant="delete">
-            Archive Old Records
-          </Button>
+          <p className={styles.label}>{t('settings.archive_desc')}</p>
+          <Button onClick={archiveOldData} variant="delete">{t('settings.archive_button_text')}</Button>
         </div>
       </div>
     </div>

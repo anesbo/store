@@ -1,6 +1,7 @@
 // src/pages/ReportsPage.jsx
 import React, { useState, useMemo } from 'react';
 import { useSales } from '../hooks/useSales';
+import { useTranslation } from 'react-i18next';
 import { useExpenses } from '../hooks/useExpenses';
 import { useSuppliers } from '../hooks/useSuppliers';
 import styles from './ReportsPage.module.css';
@@ -10,6 +11,7 @@ import Button from '../components/ui/Button.jsx';
 const UPCOMING_EXPENSE_DAYS = 3;
 
 function ReportsPage() {
+  const { t } = useTranslation();
   const { sales } = useSales();
   const { expenses } = useExpenses();
   const { suppliers } = useSuppliers();
@@ -83,31 +85,29 @@ function ReportsPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Reports</h1>
+      <h1 className={styles.title}>{t('reports.title')}</h1>
 
       <div className={styles.card}>
-        <h2 className={styles.formTitle}>Report Controls</h2>
+        <h2 className={styles.formTitle}>{t('reports.controls_title')}</h2>
         <div className={styles.controls}>
           <select value={reportType} onChange={e => setReportType(e.target.value)} className={styles.formInput}>
-            <option value="profit_loss">Profit & Loss</option>
-            <option value="sales_by_category">Sales by Category</option>
-            <option value="supplier_debt">Supplier Debt Report</option>
+            <option value="profit_loss">{t('reports.profit_loss')}</option>
+            <option value="sales_by_category">{t('reports.sales_by_category')}</option>
+            <option value="supplier_debt">{t('reports.supplier_debt_report')}</option>
           </select>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className={styles.formInput} />
-          <span>to</span>
+          <span>{t('common.to')}</span>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={styles.formInput} />
         </div>
       </div>
 
-      {/* Report Display Area */}
       {reportData && (
         <div className={styles.reportDisplay}>
-            {/* ALERT: Upcoming Expenses */}
             {reportData.upcomingExpenses.length > 0 && (
                 <div className={styles.card} style={{borderColor: '#ef4444', borderLeftWidth: '5px'}}>
-                    <h2 className={styles.reportTitle}>🚨 Upcoming Expense Alert ({reportData.upcomingExpenses.length})</h2>
+                    <h2 className={styles.reportTitle}>{t('reports.upcoming_expense_alert', { count: reportData.upcomingExpenses.length })}</h2>
                     <table className={styles.reportTable}>
-                        <thead><tr><th>Due Date</th><th>Description</th><th>Amount</th></tr></thead>
+                        <thead><tr><th>{t('common.due_date')}</th><th>{t('common.description')}</th><th>{t('common.amount')}</th></tr></thead>
                         <tbody>
                             {reportData.upcomingExpenses.map(e => (
                                 <tr key={e.id}><td>{new Date(e.dueDate).toLocaleDateString()}</td><td>{e.description}</td><td>${e.amount.toFixed(2)}</td></tr>
@@ -117,26 +117,24 @@ function ReportsPage() {
                 </div>
             )}
             
-            {/* Profit & Loss Report */}
             {reportType === 'profit_loss' && (
                 <div className={styles.card}>
-                    <h2 className={styles.reportTitle}>Profit & Loss Statement</h2>
+                    <h2 className={styles.reportTitle}>{t('reports.profit_loss_statement')}</h2>
                     <div className={styles.summaryGrid}>
-                        <div className={styles.summaryItem}> <p>Total Revenue</p> <span>${reportData.totalRevenue.toFixed(2)}</span> </div>
-                        <div className={styles.summaryItem}> <p>- Cost of Goods</p> <span>${reportData.totalCOGS.toFixed(2)}</span> </div>
-                        <div className={styles.summaryItem}> <p>= Gross Profit</p> <span>${reportData.grossProfit.toFixed(2)}</span> </div>
-                        <div className={styles.summaryItem}> <p>- Operating Expenses</p> <span>${reportData.totalExpenses.toFixed(2)}</span> </div>
-                        <div className={styles.summaryItem} style={{backgroundColor: '#dcfce7'}}> <p>Net Profit</p> <span>${reportData.netProfit.toFixed(2)}</span> </div>
+                        <div className={styles.summaryItem}><p>{t('reports.total_revenue')}</p><span>${reportData.totalRevenue.toFixed(2)}</span></div>
+                        <div className={styles.summaryItem}><p>{t('reports.cost_of_goods')}</p><span>${reportData.totalCOGS.toFixed(2)}</span></div>
+                        <div className={styles.summaryItem}><p>{t('reports.gross_profit')}</p><span>${reportData.grossProfit.toFixed(2)}</span></div>
+                        <div className={styles.summaryItem}><p>{t('reports.operating_expenses')}</p><span>${reportData.totalExpenses.toFixed(2)}</span></div>
+                        <div className={styles.summaryItem} style={{backgroundColor: '#dcfce7'}}><p>{t('reports.net_profit')}</p><span>${reportData.netProfit.toFixed(2)}</span></div>
                     </div>
                 </div>
             )}
 
-            {/* Sales by Category Report */}
             {reportType === 'sales_by_category' && (
                 <div className={styles.card}>
-                    <h2 className={styles.reportTitle}>Sales by Category</h2>
+                    <h2 className={styles.reportTitle}>{t('reports.sales_by_category')}</h2>
                     <table className={styles.reportTable}>
-                        <thead><tr><th>Category</th><th>Revenue</th></tr></thead>
+                        <thead><tr><th>{t('common.category')}</th><th>{t('common.revenue')}</th></tr></thead>
                         <tbody>
                             {Object.entries(reportData.salesByCategory).sort(([,a],[,b]) => b-a).map(([category, revenue]) => (
                                 <tr key={category}><td>{category}</td><td>${revenue.toFixed(2)}</td></tr>
@@ -146,16 +144,15 @@ function ReportsPage() {
                 </div>
             )}
             
-            {/* Supplier Debt Report */}
             {reportType === 'supplier_debt' && (
                 <div className={styles.card}>
-                    <h2 className={styles.reportTitle}>Supplier Debt Report</h2>
+                    <h2 className={styles.reportTitle}>{t('reports.supplier_debt_report')}</h2>
                     <div className={styles.summaryItem} style={{marginBottom: '1rem'}}>
-                        <p>Total Outstanding Debt</p>
+                        <p>{t('reports.total_outstanding_debt')}</p>
                         <span style={{color: '#ef4444'}}>${reportData.totalDebt.toFixed(2)}</span>
                     </div>
                     <table className={styles.reportTable}>
-                        <thead><tr><th>Supplier</th><th>Total Debt</th></tr></thead>
+                        <thead><tr><th>{t('common.supplier')}</th><th>{t('reports.total_debt')}</th></tr></thead>
                         <tbody>
                             {reportData.supplierDebtList.map(s => (
                                 <tr key={s.id}><td>{s.name}</td><td>${s.debt.toFixed(2)}</td></tr>

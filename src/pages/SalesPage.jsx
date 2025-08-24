@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useProducts } from '../hooks/useProducts';
+import { useTranslation } from 'react-i18next';
 import { useSales } from '../hooks/useSales';
 import styles from './SalesPage.module.css';
 import Modal from '../components/ui/Modal.jsx';
@@ -9,6 +10,7 @@ import Button from '../components/ui/Button.jsx';
 import { FaTimes } from 'react-icons/fa';
 
 function SalesPage() {
+  const { t } = useTranslation();
   const { products } = useProducts();
   const { addSale } = useSales();
 
@@ -134,7 +136,7 @@ function SalesPage() {
       <div className={styles.productGrid}>
         <input
           type="text"
-          placeholder="🔎 Search for products..."
+          placeholder={t('sales.search_products')}
           className={styles.searchBar}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -147,29 +149,22 @@ function SalesPage() {
                 {columnVirtualizer.getVirtualItems().map(virtualColumn => {
                   const index = virtualRow.index * columnCount + virtualColumn.index;
                   const product = filteredProducts[index];
-
                   if (!product) return null;
-
                   return (
-                    <div
-                      key={product.id}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: `${virtualColumn.size}px`,
-                        height: `${virtualRow.size}px`,
-                        transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
-                        padding: '0.5rem'
-                      }}
-                    >
+                    <div key={product.id} style={{position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: `${virtualColumn.size}px`,
+                      height: `${virtualRow.size}px`,
+                      transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
+                      padding: '0.5rem'}}>
                       <div className={styles.productCard}>
                         <div onClick={() => handleProductClick(product)} style={{cursor: 'pointer'}}>
                           <h3>{product.name}</h3>
                           <p>${product.sellingPrice.toFixed(2)}</p>
-                          <p>Stock: {product.stock}</p>
+                          <p>{t('common.stock')}: {product.stock}</p>
                         </div>
-                        <Button variant="edit" onClick={() => handleOpenQuantityModal(product)} style={{width:'100%', marginTop:'0.5rem'}}>Add Multiple</Button>
+                        <Button variant="edit" onClick={() => handleOpenQuantityModal(product)} style={{width:'100%', marginTop:'0.5rem'}}>{t('sales.add_multiple')}</Button>
                       </div>
                     </div>
                   );
@@ -181,31 +176,31 @@ function SalesPage() {
       </div>
 
       <div className={styles.cart}>
-        <h2 className={styles.cartTitle}>Current Sale</h2>
+        <h2 className={styles.cartTitle}>{t('sales.current_sale')}</h2>
         <ul className={styles.cartList}>
           {cart.map(item => (
             <li key={item.id} className={styles.cartItem}>
               <div>
                 <span>{item.name}</span>
-                <p>Qty: {item.quantity} x ${item.sellingPrice.toFixed(2)}</p>
+                <p>{t('common.quantity')}: {item.quantity} x ${item.sellingPrice.toFixed(2)}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <strong>${(item.quantity * item.sellingPrice).toFixed(2)}</strong>
-                <button onClick={() => handleRemoveFromCart(item.id)} title="Remove item" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
+                <button onClick={() => handleRemoveFromCart(item.id)} title={t('sales.remove_item_tooltip')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
                   <FaTimes />
                 </button>
               </div>
             </li>
           ))}
-          {cart.length === 0 && <p>Click on a product to add it to the sale.</p>}
+          {cart.length === 0 && <p>{t('sales.empty_cart_message')}</p>}
         </ul>
         <div className={styles.cartTotal}>
           <div className={styles.totalRow}>
-            <span>TOTAL</span>
+            <span>{t('common.total')}</span>
             <span>${cartTotal.toFixed(2)}</span>
           </div>
           <button className={styles.checkoutButton} onClick={handleCompleteSale}>
-            Complete Sale
+            {t('sales.complete_sale')}
           </button>
         </div>
       </div>
@@ -214,8 +209,8 @@ function SalesPage() {
         {selectedProduct && (
             <div>
                 <h2>{selectedProduct.name}</h2>
-                <p>Available stock: {selectedProduct.stock}</p>
-                <label htmlFor="quantity">Quantity:</label>
+                <p>{t('sales.available_stock')}: {selectedProduct.stock}</p>
+                <label htmlFor="quantity">{t('common.quantity')}:</label>
                 <input
                     id="quantity"
                     type="number"
@@ -226,7 +221,7 @@ function SalesPage() {
                     className={styles.searchBar}
                     autoFocus
                 />
-                <Button variant="save" onClick={handleAddToCartFromModal} style={{width:'100%'}}>Add to Sale</Button>
+                <Button variant="save" onClick={handleAddToCartFromModal} style={{width:'100%'}}>{t('sales.add_to_sale')}</Button>
             </div>
         )}
       </Modal>
