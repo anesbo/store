@@ -9,7 +9,7 @@ import { useSuppliers } from '../hooks/useSuppliers';
 import { useCategories } from '../hooks/useCategories';
 import styles from './DashboardPage.module.css';
 import { useTranslation } from 'react-i18next';
-import { FaDollarSign, FaRegCalendarAlt, FaRegCalendarCheck, FaRegClock, FaBoxes, FaChartPie, FaChartBar } from 'react-icons/fa';
+import { FaTrash, FaRegCalendarAlt, FaRegCalendarCheck, FaRegClock, FaBoxes, FaChartPie, FaChartBar } from 'react-icons/fa';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -28,7 +28,7 @@ function StatCard({ icon, title, value, secondaryValue, color }) {
 
 function DashboardPage() {
   const { products } = useProducts();
-  const { sales } = useSales();
+  const { sales, deleteSale } = useSales();
   const { expenses } = useExpenses();
   const { suppliers } = useSuppliers();
   const { categories } = useCategories();
@@ -184,7 +184,13 @@ function DashboardPage() {
       <div className={styles.bottomGrid}>
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>{t('dashboard.recent_sales')}</h2>
-          <ul>{recentSalesPagination.paginatedItems.map(s => <li key={s.id} className={styles.listItem}><div><span>{t('dashboard.items_sold', {count: s.items.length})}</span><small style={{display:'block',color:'#666'}}>{new Date(s.timestamp).toLocaleDateString()}</small></div><strong>${s.totalAmount.toFixed(2)}</strong></li>)}</ul>
+          <ul>{recentSalesPagination.paginatedItems.map(s => <li key={s.id} className={styles.listItem}><div><span>{t('dashboard.items_sold', {count: s.items.length})}</span><small style={{display:'block',color:'#666'}}>{new Date(s.timestamp).toLocaleDateString()}</small></div><div><strong>${s.totalAmount.toFixed(2)}</strong><button 
+                    onClick={() => deleteSale(s.id)} 
+                    title={t('common.delete')}
+                    style={{background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444'}}
+                  >
+                    <FaTrash />
+                  </button></div></li>)}</ul>
           {renderPaginationControls(salesPage, recentSalesPagination.totalPages, setSalesPage)}
         </div>
         <div className={styles.card}>
@@ -239,6 +245,13 @@ function DashboardPage() {
                     <button onClick={() => handleToggleSaleDetails(sale.id)} className={styles.detailsButton}>
                       {expandedSaleId === sale.id ? t('common.hide') : t('common.show')}
                     </button>
+                    <button 
+                    onClick={() => deleteSale(sale.id)} 
+                    title={t('common.delete')}
+                    style={{background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444'}}
+                  >
+                    <FaTrash />
+                  </button>
                   </td>
                 </tr>,
                 expandedSaleId === sale.id && (

@@ -33,6 +33,33 @@ export function useSales() {
       toast.error('Failed to complete sale. Stock not updated.');
     }
   };
+  const deleteSale = async (saleId) => {
+    if (!window.confirm("Are you sure you want to delete this sale? This will restore the stock of the items sold.")) {
+      return;
+    }
 
-  return { sales, addSale };
+    try {
+      await db.transaction('rw', db.sales, db.products, async () => {
+        // 1. Get the sale to be deleted
+        const saleToDelete = await db.sales.get(saleId);
+        if (!saleToDelete) throw new Error("Sale not found.");
+
+        // 2. Restore stock for each item in the sale
+        for (const item of saleToDelete.items) {
+          await db.products.where('id').equals(item.id).modify(product => {
+            product.stock += item.quantity;
+          });
+        }
+
+        // 3. Delete the sale record
+        await db.sales.delete(saleId);
+      });
+      
+      toast.success('Sale deleted and stock restored!');
+    } catch (error) {
+      console.error("Failed to delete sale:", error);
+      toast.error('Failed to delete sale.');
+    }
+  };
+  return { sales, addSale ,deleteSale};
 }

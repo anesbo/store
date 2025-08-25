@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettings, useSetting } from '../hooks/useSettings';
 import { db } from '../lib/db';
-import { useTranslation } from 'react-i18next';
 import styles from './SettingsPage.module.css';
 import Button from '../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
