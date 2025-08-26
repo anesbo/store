@@ -101,6 +101,8 @@
     "no_categories_yet": "Aucune catégorie ajoutée pour le moment."
   },
   "sales": {
+    "edit_cart_message": "Cliquez sur un article dans le panier pour modifier la quantité ou le supprimer.",
+    "search_products":"🔎 Rechercher des produits...",
     "add_multiple": "Ajouter Plusieurs",
     "current_sale": "Vente Actuelle",
     "empty_cart_message": "Cliquez sur un produit pour l'ajouter à la vente.",

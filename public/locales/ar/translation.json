@@ -101,6 +101,7 @@
     "no_categories_yet": "لم تتم إضافة فئات بعد."
   },
   "sales": {
+    "search_products":"🔎 البحث عن منتجات...",
     "add_multiple": "إضافة متعددة",
     "current_sale": "البيع الحالي",
     "empty_cart_message": "انقر على منتج لإضافته إلى البيع.",

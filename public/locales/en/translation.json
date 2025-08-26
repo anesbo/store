@@ -101,6 +101,8 @@
     "no_categories_yet": "No categories added yet."
   },
   "sales": {
+    "edit_cart_message": "Click an item in the cart to edit quantity or remove.",
+    "search_products":"🔎 Search for products...",
     "add_multiple": "Add Multiple",
     "current_sale": "Current Sale",
     "empty_cart_message": "Click on a product to add it to the sale.",

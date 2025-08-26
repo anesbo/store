@@ -1,8 +1,9 @@
 // src/pages/SalesPage.jsx
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useProducts } from '../hooks/useProducts';
-import { useTranslation } from 'react-i18next';
 import { useSales } from '../hooks/useSales';
 import styles from './SalesPage.module.css';
 import Modal from '../components/ui/Modal.jsx';
@@ -11,15 +12,41 @@ import { FaTimes } from 'react-icons/fa';
 
 function SalesPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { saleId } = useParams(); // Get the saleId from the URL
   const { products } = useProducts();
-  const { addSale } = useSales();
+  const { sales, addSale, updateSale } = useSales();
 
   const [cart, setCart] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const parentRef = useRef();
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    if (saleId && sales) {
+      const saleToEdit = sales.find(s => s.id === parseInt(saleId, 10));
+      if (saleToEdit && Array.isArray(saleToEdit.items)) {
+        setCart(saleToEdit.items);
+      }
+    } else {
+      setCart([]); // Clear cart if it's a new sale
+    }
+  }, [saleId, sales]);
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    if (parentRef.current) {
+      resizeObserver.observe(parentRef.current);
+    }
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -29,14 +56,13 @@ function SalesPage() {
   }, [products, searchTerm]);
 
   const cartTotal = useMemo(() => {
-    return cart.reduce((total, item) => total + item.sellingPrice * item.quantity, 0);
+    if (!cart) return 0;
+    return cart.reduce((total, item) => total + (item.sellingPrice || 0) * item.quantity, 0);
   }, [cart]);
-
-  const parentRef = useRef();
-  const [containerWidth, setContainerWidth] = useState(0);
-
+  
   const columnCount = containerWidth > 0 ? Math.max(1, Math.floor(containerWidth / 170)) : 1;
   const rowCount = Math.ceil(filteredProducts.length / columnCount);
+
   const rowVirtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
@@ -52,25 +78,13 @@ function SalesPage() {
     overscan: 5,
   });
 
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    if (parentRef.current) {
-      resizeObserver.observe(parentRef.current);
-    }
-    
-    return () => resizeObserver.disconnect();
-  }, []);
-
+  if (products === undefined) {
+    return <div style={{padding: '2rem'}}>Loading products...</div>;
+  }
 
   const handleProductClick = (product) => {
     const existingItem = cart.find(item => item.id === product.id);
     const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
-    
     if (currentQuantityInCart < product.stock) {
         setCart(currentCart => {
             if (existingItem) {
@@ -93,15 +107,12 @@ function SalesPage() {
   const handleAddToCartFromModal = () => {
     const qty = parseInt(quantity, 10);
     if (!selectedProduct || !qty || qty <= 0) return;
-
     const existingItem = cart.find(item => item.id === selectedProduct.id);
     const currentQuantityInCart = existingItem ? existingItem.quantity : 0;
-    
     if (qty + currentQuantityInCart > selectedProduct.stock) {
         alert(`Cannot add ${qty} items. Only ${selectedProduct.stock - currentQuantityInCart} available.`);
         return;
     }
-
     setCart(currentCart => {
         if (existingItem) {
             return currentCart.map(item =>
@@ -111,7 +122,6 @@ function SalesPage() {
             return [...currentCart, { ...selectedProduct, quantity: qty }];
         }
     });
-
     setIsModalOpen(false);
   };
 
@@ -120,15 +130,17 @@ function SalesPage() {
   };
 
   const handleCompleteSale = () => {
-    if (cart.length === 0) {
-      return alert("The cart is empty.");
+    if (cart.length === 0) return alert("Cart is empty.");
+
+    if (saleId) {
+      updateSale(parseInt(saleId, 10), cart, cartTotal);
+      setCart([]);
+      navigate('/');
+    } else {
+      const saleData = { items: cart, totalAmount: cartTotal };
+      addSale(saleData);
+      setCart([]);
     }
-    const saleData = {
-      items: cart,
-      totalAmount: cartTotal,
-    };
-    addSale(saleData);
-    setCart([]);
   };
 
   return (
@@ -141,58 +153,39 @@ function SalesPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        
-        <div ref={parentRef} className={styles.gridContainer}>
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: `${columnVirtualizer.getTotalSize()}px`, position: 'relative' }}>
-            {rowVirtualizer.getVirtualItems().map(virtualRow => (
-              <React.Fragment key={virtualRow.key}>
-                {columnVirtualizer.getVirtualItems().map(virtualColumn => {
-                  const index = virtualRow.index * columnCount + virtualColumn.index;
-                  const product = filteredProducts[index];
-                  if (!product) return null;
-                  return (
-                    <div key={product.id} style={{position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: `${virtualColumn.size}px`,
-                      height: `${virtualRow.size}px`,
-                      transform: `translateX(${virtualColumn.start}px) translateY(${virtualRow.start}px)`,
-                      padding: '0.5rem'}}>
-                      <div className={styles.productCard}>
-                        <div onClick={() => handleProductClick(product)} style={{cursor: 'pointer'}}>
-                          <h3>{product.name}</h3>
-                          <p>${product.sellingPrice.toFixed(2)}</p>
-                          <p>{t('common.stock')}: {product.stock}</p>
-                        </div>
-                        <Button variant="edit" onClick={() => handleOpenQuantityModal(product)} style={{width:'100%', marginTop:'0.5rem'}}>{t('sales.add_multiple')}</Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </div>
+        <div className={styles.gridContainer}>
+          {filteredProducts.map(product => (
+            <div key={product.id} className={styles.productCard}>
+              <div onClick={() => handleProductClick(product)} style={{ cursor: 'pointer' }}>
+                <h3>{product.name}</h3>
+                <p>${(product.sellingPrice || 0).toFixed(2)}</p>
+                <p>{t('common.stock')}: {product.stock}</p>
+              </div>
+              <Button variant="edit" onClick={() => handleOpenQuantityModal(product)} style={{ width: '100%', marginTop: '0.5rem' }}>
+                {t('sales.add_multiple')}
+              </Button>
+            </div>
+          ))}
         </div>
       </div>
-
       <div className={styles.cart}>
-        <h2 className={styles.cartTitle}>{t('sales.current_sale')}</h2>
+        <h2 className={styles.cartTitle}>{saleId ? t('sales.edit_sale') : t('sales.current_sale')}</h2>
         <ul className={styles.cartList}>
           {cart.map(item => (
             <li key={item.id} className={styles.cartItem}>
               <div>
                 <span>{item.name}</span>
-                <p>{t('common.quantity')}: {item.quantity} x ${item.sellingPrice.toFixed(2)}</p>
+                <p>{t('common.quantity')}: {item.quantity} x ${(item.sellingPrice || 0).toFixed(2)}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <strong>${(item.quantity * item.sellingPrice).toFixed(2)}</strong>
+                <strong>${((item.quantity || 0) * (item.sellingPrice || 0)).toFixed(2)}</strong>
                 <button onClick={() => handleRemoveFromCart(item.id)} title={t('sales.remove_item_tooltip')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}>
                   <FaTimes />
                 </button>
               </div>
             </li>
           ))}
-          {cart.length === 0 && <p>{t('sales.empty_cart_message')}</p>}
+          {cart.length === 0 && <p>{saleId ? t('sales.edit_cart_message') : t('sales.empty_cart_message')}</p>}
         </ul>
         <div className={styles.cartTotal}>
           <div className={styles.totalRow}>
@@ -200,29 +193,28 @@ function SalesPage() {
             <span>${cartTotal.toFixed(2)}</span>
           </div>
           <button className={styles.checkoutButton} onClick={handleCompleteSale}>
-            {t('sales.complete_sale')}
+            {saleId ? t('sales.update_sale') : t('sales.complete_sale')}
           </button>
         </div>
       </div>
-      
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         {selectedProduct && (
-            <div>
-                <h2>{selectedProduct.name}</h2>
-                <p>{t('sales.available_stock')}: {selectedProduct.stock}</p>
-                <label htmlFor="quantity">{t('common.quantity')}:</label>
-                <input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    max={selectedProduct.stock}
-                    value={quantity}
-                    onChange={e => setQuantity(e.target.value)}
-                    className={styles.searchBar}
-                    autoFocus
-                />
-                <Button variant="save" onClick={handleAddToCartFromModal} style={{width:'100%'}}>{t('sales.add_to_sale')}</Button>
-            </div>
+          <div>
+            <h2>{selectedProduct.name}</h2>
+            <p>{t('sales.available_stock')}: {selectedProduct.stock}</p>
+            <label htmlFor="quantity">{t('common.quantity')}:</label>
+            <input
+              id="quantity"
+              type="number"
+              min="1"
+              max={selectedProduct.stock}
+              value={quantity}
+              onChange={e => setQuantity(e.target.value)}
+              className={styles.searchBar}
+              autoFocus
+            />
+            <Button variant="save" onClick={handleAddToCartFromModal} style={{ width: '100%' }}>{t('sales.add_to_sale')}</Button>
+          </div>
         )}
       </Modal>
     </div>

@@ -8,6 +8,8 @@ import { useExpenses } from '../hooks/useExpenses';
 import { useSuppliers } from '../hooks/useSuppliers';
 import { useCategories } from '../hooks/useCategories';
 import styles from './DashboardPage.module.css';
+import { useNavigate } from 'react-router-dom';
+import { FaEdit } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { FaTrash, FaRegCalendarAlt, FaRegCalendarCheck, FaRegClock, FaBoxes, FaChartPie, FaChartBar } from 'react-icons/fa';
 
@@ -42,6 +44,18 @@ function DashboardPage() {
   const [endDate, setEndDate] = useState('');
   const [expandedSaleId, setExpandedSaleId] = useState(null);
   const { t } = useTranslation();
+
+
+  const navigate = useNavigate();
+
+  const handleEditSale = (sale) => {
+    if (sale && sale.id) { // <-- ADD THIS CHECK
+      navigate(`/sales/${sale.id}`);
+    } else {
+      console.error("Attempted to edit a sale with no ID:", sale);
+      alert("This sale record is corrupted and cannot be edited.");
+    }
+  };
   
   useEffect(() => {
     setHistoryPage(1);
@@ -190,7 +204,12 @@ function DashboardPage() {
                     style={{background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444'}}
                   >
                     <FaTrash />
-                  </button></div></li>)}</ul>
+                  </button>
+                  <button onClick={() => handleEditSale(s)}> {/* This is correct */}
+                    <FaEdit />
+                  </button>
+                </div>
+              </li>)}</ul>
           {renderPaginationControls(salesPage, recentSalesPagination.totalPages, setSalesPage)}
         </div>
         <div className={styles.card}>
@@ -251,6 +270,9 @@ function DashboardPage() {
                     style={{background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444'}}
                   >
                     <FaTrash />
+                  </button>
+                  <button onClick={() => handleEditSale(sale)}>
+                    <FaEdit />
                   </button>
                   </td>
                 </tr>,
