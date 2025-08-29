@@ -1,88 +1,87 @@
 /* src/pages/DashboardPage.module.css */
 .pageContainer {
-    padding: 2rem;
-  }
-  .title {
-    font-size: 2.25rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-  }
-  
-  /* Grid for the top stat cards */
-  .statsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-  }
-  
-  .statCard {
-    background-color: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    display: flex;
-    align-items: center;
-    border-left: 5px solid; /* Color will be set inline */
-  }
-  .statIcon {
-    font-size: 2rem;
-    margin-right: 1rem;
-    color: #4b5563;
-  }
-  .statInfo p {
-    margin: 0;
-    color: #6b7280;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-  }
-  .statInfo span {
-    font-size: 1.75rem;
-    font-weight: bold;
-    color: #1f2937;
-  }
-  
-  /* Grid for the bottom section */
-  .bottomGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .card {
-    background-color: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-  }
-  .cardTitle {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-  .card ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .listItem {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  .listItem:last-child {
-    border-bottom: none;
-  }
-  /* Add this to the end of src/pages/DashboardPage.module.css */
+  padding: 2rem;
+}
+.title {
+  font-size: 2.25rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.statCard {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  display: flex;
+  align-items: center;
+  border-left: 5px solid;
+}
+.statIcon {
+  font-size: 2rem;
+  margin-right: 1rem;
+  color: #4b5563;
+}
+.statInfo p {
+  margin: 0;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+.statInfo span {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #1f2937;
+}
 .statInfo small {
   display: block;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #4b5563; /* A slightly darker gray */
+  color: #4b5563;
   margin-top: 4px;
 }
+
+.bottomGrid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+.cardTitle {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.listItem:last-child {
+  border-bottom: none;
+}
+
 .pagination {
   display: flex;
   justify-content: space-between;
@@ -103,7 +102,7 @@
 }
 
 .historyCard {
-  grid-column: 1 / -1; /* Make this card span the full width */
+  grid-column: 1 / -1;
   margin-top: 2rem;
 }
 
@@ -134,7 +133,6 @@
   text-align: left;
   border-bottom: 1px solid #eee;
 }
-/* Add these styles to DashboardPage.module.css */
 
 .detailsButton {
   font-size: 0.8rem;
@@ -146,12 +144,92 @@
 }
 
 .detailsRow td {
-  background-color: #f9fafb; /* A very light gray background */
+  background-color: #f9fafb;
   padding: 1rem;
 }
-
 .detailsRow ul {
   list-style: disc;
   margin: 0;
   padding-left: 1.5rem;
+}
+
+/* NEW: Media Query for mobile responsiveness */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 0.7rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .statsGrid, .bottomGrid {
+    gap: 1rem;
+  }
+
+  .statCard, .card {
+    padding: 1rem;
+  }
+
+  .statInfo span {
+    font-size: 1.5rem;
+  }
+
+  .dateFilter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .historyTable th, .historyTable td {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .historyTable thead {
+    display: none; /* Hide table headers on mobile */
+  }
+  
+  .historyTable tr {
+    display: block; /* Make rows stack like blocks */
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    padding: 1rem;
+  }
+  
+  .historyTable td {
+    display: flex; /* Use flexbox for label/value pairs */
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px dotted #ccc;
+  }
+  
+  .historyTable td:last-child {
+    border-bottom: none;
+  }
+  
+  .historyTable td::before {
+    content: attr(data-label); /* Use the data-label as the text before the value */
+    font-weight: bold;
+    text-align: left;
+    padding-right: 1rem;
+  }
+  
+  /* Adjust the details row to work with the new layout */
+  .detailsRow {
+      border: none;
+      padding: 0;
+      margin-bottom: 1rem;
+  }
+  .detailsRow td {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    margin-top: -1rem;
+  }
+  .detailsRow td::before {
+    display: none; /* No label needed for the full-width details row */
+  }
 }

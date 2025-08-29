@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCategories } from '../hooks/useCategories';
 import { useProducts } from '../hooks/useProducts';
-import styles from './InventoryPage.module.css';
+import styles from './CategoriesPage.module.css'; // Use the new stylesheet
 import Button from '../components/ui/Button.jsx';
 import { FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
 
@@ -84,52 +84,64 @@ function CategoriesPage() {
             style={{ maxWidth: '300px' }}
           />
         </div>
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          <li style={{ display: 'flex', gap: '1rem', padding: '0.5rem 0', borderBottom: '2px solid #ccc', fontWeight: 'bold' }}>
-            <span style={{ flex: 1 }}>{t('categories.category_name')}</span>
-            <span style={{ width: '100px', textAlign: 'center' }}>{t('categories.products')}</span>
-            <span style={{ width: '180px', textAlign: 'center' }}>{t('common.actions')}</span>
-          </li>
-          {filteredCategories.map(category => (
-            <li key={category.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem 0', borderBottom: '1px solid #eee' }}>
-              {editingId === category.id ? (
-                <input
-                  type="text"
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
-                  className={styles.formInput}
-                  autoFocus
-                  style={{ flex: 1 }}
-                />
-              ) : (
-                <span style={{ flex: 1 }}>{category.name}</span>
-              )}
-              <span style={{ width: '100px', textAlign: 'center' }}>{categoryCounts[category.name] || 0}</span>
-              <div style={{ display: 'flex', gap: '8px', width: '180px', justifyContent: 'center'}}>
-                {editingId === category.id ? (
-                  <>
-                    <Button variant="save" onClick={() => handleUpdate(category.id)}><FaSave /></Button>
-                    <Button variant="cancel" onClick={() => setEditingId(null)}><FaTimes /></Button>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="edit" onClick={() => handleEdit(category)}><FaEdit /></Button>
-                    <Button
-                      variant="delete"
-                      onClick={() => handleDeleteClick(category)}
-                      disabled={(categoryCounts[category.name] || 0) > 0}
-                      title={(categoryCounts[category.name] || 0) > 0 ? t('categories.cannot_delete_tooltip') : t('categories.delete_tooltip')}
-                    >
-                      <FaTrash />
-                    </Button>
-                  </>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+        
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>{t('categories.category_name')}</th>
+                <th>{t('categories.products')}</th>
+                <th style={{width: '180px'}}>{t('common.actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredCategories.map(category => (
+                <tr key={category.id}>
+                  {editingId === category.id ? (
+                    <>
+                      <td data-label={t('categories.category_name')}>
+                        <input type="text" value={editingName} onChange={(e) => setEditingName(e.target.value)} className={styles.formInput} autoFocus />
+                      </td>
+                      <td data-label={t('categories.products')}>
+                        {categoryCounts[category.name] || 0}
+                      </td>
+                      <td data-label={t('common.actions')}>
+                        <div className={styles.actionsCell}>
+                          <Button variant="save" onClick={() => handleUpdate(category.id)}><FaSave /></Button>
+                          <Button variant="cancel" onClick={() => setEditingId(null)}><FaTimes /></Button>
+                        </div>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td data-label={t('categories.category_name')}>
+                        {category.name}
+                      </td>
+                      <td data-label={t('categories.products')}>
+                        {categoryCounts[category.name] || 0}
+                      </td>
+                      <td data-label={t('common.actions')}>
+                        <div className={styles.actionsCell}>
+                          <Button variant="edit" onClick={() => handleEdit(category)}><FaEdit /></Button>
+                          <Button
+                            variant="delete"
+                            onClick={() => handleDeleteClick(category)}
+                            disabled={(categoryCounts[category.name] || 0) > 0}
+                            title={(categoryCounts[category.name] || 0) > 0 ? t('categories.cannot_delete_tooltip') : t('categories.delete_tooltip')}
+                          >
+                            <FaTrash />
+                          </Button>
+                        </div>
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {filteredCategories.length === 0 && searchTerm && <p className={styles.emptyMessage}>{t('categories.no_match')}</p>}
-        {categories?.length === 0 && <p className={styles.emptyMessage}>{t('categories.no_categories_yet')}</p>}
+        {categories?.length === 0 && !searchTerm && <p className={styles.emptyMessage}>{t('categories.no_categories_yet')}</p>}
       </div>
     </div>
   );

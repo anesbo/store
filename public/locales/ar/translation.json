@@ -79,6 +79,7 @@
     "sales_history": "سجل المبيعات"
   },
   "inventory": {
+    "select_category": "اختر فئة...",
     "title": "إدارة المخزون",
     "add_product": "إضافة منتج جديد",
     "product_name": "اسم المنتج",

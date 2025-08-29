@@ -9,7 +9,7 @@
   flex: 2;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  min-width: 0; /* Important for flexbox sizing */
 }
 
 .searchBar {
@@ -20,14 +20,15 @@
   font-size: 1rem;
 }
 
+/* This is the responsive grid for the products */
 .gridContainer {
-  flex-grow: 1;
-  overflow-y: auto;
+  flex-grow: 1; /* Make it fill the available vertical space */
+  overflow-y: auto; /* Allow scrolling */
   padding: 0.5rem;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
-  align-content: start;
+  align-content: start; /* Prevents stretching */
 }
 
 .productCard {
@@ -40,6 +41,7 @@
   flex-direction: column;
   justify-content: space-between;
   height: 150px;
+  transition: box-shadow 0.2s, transform 0.2s;
 }
 
 .productCard:hover {
@@ -50,6 +52,7 @@
 .productCard h3 {
   margin: 0.5rem 0 0.25rem;
   font-size: 1rem;
+  font-weight: 600;
 }
 
 .productCard p {
@@ -58,6 +61,7 @@
   font-size: 0.9rem;
 }
 
+/* Styles for the cart on the right */
 .cart {
   flex: 1;
   background-color: white;
@@ -67,72 +71,114 @@
   display: flex;
   flex-direction: column;
 }
-  
-  .cartTitle {
-    margin-top: 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 1rem;
-  }
-  
-  .cartList {
-    list-style: none;
-    padding: 0;
-    flex-grow: 1;
-    overflow-y: auto;
-  }
-  
-  .cartItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-  }
-  
-  .cartItem span {
-    font-weight: 500;
-  }
-  
-  .cartTotal {
-    border-top: 2px solid #1f2937;
-    padding-top: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .totalRow {
-    display: flex;
-    justify-content: space-between;
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .checkoutButton {
-    width: 100%;
-    padding: 1rem;
-    margin-top: 1rem;
-    background-color: #22c55e;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1.25rem;
-    cursor: pointer;
-  }
-  /* Replace the .grid style in SalesPage.module.css with this */
-.gridContainer {
-  flex-grow: 1;
-  overflow: auto; /* This element MUST be the scroller */
-  position: relative; /* Needed for absolute positioning of children */
+
+.cartTitle {
+  margin-top: 0;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
 }
 
-/* Make sure the product card fills the space it's given */
-.productCard {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1rem;
-  padding-top: 0;
-  text-align: center;
-  height: 100%; /* Fill the container div */
+.cartList {
+  list-style: none;
+  padding: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.cartItem {
   display: flex;
-  flex-direction: column;
   justify-content: space-between;
-  min-width: 150px;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px dotted #ccc;
+}
+.cartItem:last-child {
+    border-bottom: none;
+}
+
+.cartItem span {
+  font-weight: 500;
+}
+
+.cartTotal {
+  border-top: 2px solid #1f2937;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.checkoutButton {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1rem;
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.checkoutButton:hover {
+    background-color: #16a34a;
+}
+.goToCartButton {
+  display: none; /* Hidden on desktop */
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: #000000;
+  color: white;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 100;
+  text-decoration: none;
+}
+
+.cartBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #980505;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 768px) {
+  .pageContainer {
+    flex-direction: column; /* Stack product grid and cart vertically */
+    height: auto; /* Allow the page to grow in height */
+  }
+  .goToCartButton {
+    display: flex; /* Show the button on mobile */
+  }
+  .productGrid {
+    flex: 1; /* Allow it to take up space as needed */
+    height: 60vh; /* Give it a defined height for scrolling */
+  }
+.gridContainer {
+    gap: 0.5rem; /* Slightly smaller gap on mobile */
+  }
+  .cart {
+    flex: 1;
+  }
 }

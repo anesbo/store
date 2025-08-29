@@ -79,6 +79,7 @@
     "sales_history": "Historique des Ventes"
   },
   "inventory": {
+    "select_category": "Sélectionner une Catégorie...",
     "title": "Gestion de l'Inventaire",
     "add_product": "Ajouter un Nouveau Produit",
     "product_name": "Nom du Produit",

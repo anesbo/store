@@ -90,3 +90,8 @@
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
   }
+  @media (max-width: 768px) {
+    .pageContainer{
+      padding: 0.5rem;
+    }
+  }

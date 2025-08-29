@@ -1,56 +1,88 @@
 /* src/components/layout/Navbar.module.css */
 
 .navbar {
-    width: 250px;
-    background-color: #000000; /* A dark, modern blue */
-    color: #ecf0f1;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
-  
-  .header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #34495e;
-  }
-  
-  .title {
-    font-size: 1.75rem;
-    font-weight: bold;
-    text-align: center;
-  }
-  
-  .navList {
-    list-style: none;
-    padding: 0;
-    margin: 1rem 0;
-    flex-grow: 1;
-  }
-  
-  .navLink {
-    display: block;
-    padding: 1rem 1.5rem;
-    text-decoration: none;
-    color: #ecf0f1;
-    transition: background-color 0.2s ease-in-out, padding-left 0.2s ease-in-out;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  
-  .navLink:hover {
-    background-color: #2d2d2d;
-    padding-left: 2rem; /* Indent on hover for a nice effect */
-  }
-  
-  .footer {
-    padding: 1rem;
-    text-align: center;
-    font-size: 0.8rem;
-    color: #95a5a6;
-    border-top: 1px solid #34495e;
-  }
-  /* Add to Navbar.module.css */
+  position: fixed;
+  z-index: 1001;
+  width: 250px;
+  background-color: #121314;
+  color: #ecf0f1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  transition: width 0.3s ease-in-out;
+  flex-shrink: 0; /* Important: Prevents the sidebar from being squished on small screens */
+}
+
+.navbarCollapsed {
+  width: 50px;
+}
+.navbarCollapsed .title,
+.navbarCollapsed .navLinkText,
+.navbarCollapsed .footer p {
+  display: none;
+}
+.navbarCollapsed .navLink {
+  justify-content: center;
+  padding: 1rem 0;
+}
+.navbarCollapsed .header {
+  padding: 1.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+.navbarCollapsed .logoutButton {
+  display: none;
+}
+
+.header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1px solid #34495e;
+  position: relative;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin:0;
+  flex-grow: 1;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  text-decoration: none;
+  color: #ecf0f1;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background-color: #34495e;
+}
+
+.navLinkText {
+  white-space: nowrap;
+}
+
+.footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #95a5a6;
+  border-top: 1px solid #34495e;
+}
+
 .logoutButton {
   background-color: #ef4444;
   color: white;
@@ -60,4 +92,20 @@
   cursor: pointer;
   margin-bottom: 1rem;
   width: 80%;
+  transition: width 0.3s ease-in-out;
 }
+
+.toggleButton {
+  display: flex;
+  background-color: #1c1e1f;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* All hamburger menu styles are removed as they are no longer needed */

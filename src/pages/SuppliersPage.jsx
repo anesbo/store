@@ -1,16 +1,17 @@
-// src/pages/SuppliersPage.jsx
 import React, { useState, useMemo } from 'react';
-import { useSuppliers } from '../hooks/useSuppliers';
 import { useTranslation } from 'react-i18next';
+import { useSuppliers } from '../hooks/useSuppliers';
 import { useExpenses } from '../hooks/useExpenses';
 import styles from './SuppliersPage.module.css';
 import Button from '../components/ui/Button.jsx';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { FaEdit, FaTrash, FaSave, FaTimes, FaPlus, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 
 function SuppliersPage() {
+  const { t } = useTranslation();
   const { suppliers, addSupplier, updateSupplier, deleteSupplier } = useSuppliers();
   const { expenses, updateExpense, clearSupplierDebt } = useExpenses();
-  const { t } = useTranslation();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   const [newSupplier, setNewSupplier] = useState({ name: '', contact: '', phone: '' });
   const [editingId, setEditingId] = useState(null);
@@ -93,7 +94,7 @@ function SuppliersPage() {
 
       <div className={styles.card}>
         <h2 className={styles.formTitle}>{t('suppliers.list_title')}</h2>
-        <div style={{ overflowX: 'auto' }}>
+        <div className={styles.tableContainer}>
           <table className={styles.table}>
             <thead>
               <tr>
@@ -111,15 +112,15 @@ function SuppliersPage() {
                 const isExpanded = expandedSupplierId === supplier.id;
 
                 return ([
-                  <tr key={supplier.id}>
+                  <tr key={supplier.id} className={editingId === supplier.id ? styles.editingRow : ''}>
                     {editingId === supplier.id ? (
                       <>
-                        <td><input type="text" name="name" value={editFormData.name} onChange={handleEditFormChange} className={styles.formInput} /></td>
-                        <td>${debt.toFixed(2)}</td>
-                        <td><input type="text" name="contact" value={editFormData.contact} onChange={handleEditFormChange} className={styles.formInput} /></td>
-                        <td><input type="tel" name="phone" value={editFormData.phone} onChange={handleEditFormChange} className={styles.formInput} /></td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '8px' }}>
+                        <td data-label={t('common.supplier_name')}><input type="text" name="name" value={editFormData.name} onChange={handleEditFormChange} className={styles.formInput} /></td>
+                        <td data-label={t('suppliers.current_debt')}>${debt.toFixed(2)}</td>
+                        <td data-label={t('common.contact_person')}><input type="text" name="contact" value={editFormData.contact} onChange={handleEditFormChange} className={styles.formInput} /></td>
+                        <td data-label={t('common.phone_number')}><input type="tel" name="phone" value={editFormData.phone} onChange={handleEditFormChange} className={styles.formInput} /></td>
+                        <td data-label={t('common.actions')}>
+                          <div className={styles.actionsCell}>
                             <Button variant="save" onClick={handleUpdateClick}><FaSave /> {t('common.save')}</Button>
                             <Button variant="cancel" onClick={() => setEditingId(null)}><FaTimes /> {t('common.cancel')}</Button>
                           </div>
@@ -127,20 +128,27 @@ function SuppliersPage() {
                       </>
                     ) : (
                       <>
-                        <td>{supplier.name}</td>
-                        <td style={debt > 0 ? { color: 'red', fontWeight: 'bold' } : {}}>${debt.toFixed(2)}</td>
-                        <td>{supplier.contact || '---'}</td>
-                        <td>{supplier.phone || '---'}</td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <Button variant="edit" onClick={() => handleToggleDetails(supplier.id)} disabled={debt === 0}>
-                              {isExpanded ? <FaChevronUp/> : <FaChevronDown/>} {t('common.details')}
-                            </Button>
-                            <Button variant="save" onClick={() => clearSupplierDebt(supplier.id)} disabled={debt === 0}>{t('suppliers.clear_all_debt')}</Button>
-                            <Button variant="edit" onClick={() => handleEditClick(supplier)}><FaEdit /></Button>
-                            <Button variant="delete" onClick={() => deleteSupplier(supplier.id)}><FaTrash /></Button>
-                          </div>
-                        </td>
+                        <td data-label={t('common.supplier_name')}>{supplier.name}</td>
+                        <td data-label={t('suppliers.current_debt')} style={debt > 0 ? { color: 'red', fontWeight: 'bold' } : {}}>${debt.toFixed(2)}</td>
+                        <td data-label={t('common.contact_person')}>{supplier.contact || '---'}</td>
+                        <td data-label={t('common.phone_number')}>{supplier.phone || '---'}</td>
+                        <td data-label={t('common.actions')}>
+                      <div className={styles.actionsCell}>
+                        {/* 3. Conditionally render button text */}
+                        <Button variant="edit" onClick={() => handleToggleDetails(supplier.id)} disabled={debt === 0}>
+                          {isExpanded ? <FaChevronUp/> : <FaChevronDown/>} {!isMobile && t('common.details')}
+                        </Button>
+                        <Button variant="save" onClick={() => clearSupplierDebt(supplier.id)} disabled={debt === 0}>
+                          {!isMobile ? t('suppliers.clear_all_debt') : '✔️'}
+                        </Button>
+                        <Button variant="edit" onClick={() => handleEditClick(supplier)}>
+                          <FaEdit /> {!isMobile && t('common.edit')}
+                        </Button>
+                        <Button variant="delete" onClick={() => deleteSupplier(supplier.id)}>
+                          <FaTrash />
+                        </Button>
+                      </div>
+                    </td>
                       </>
                     )}
                   </tr>,

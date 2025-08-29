@@ -81,10 +81,10 @@ function InventoryPage() {
           <input name="sellingPrice" type="number" placeholder={t('inventory.selling_price')} value={newProduct.sellingPrice} onChange={handleNewProductChange} className={styles.formInput} />
           <input name="stock" type="number" placeholder={t('inventory.stock_quantity')} value={newProduct.stock} onChange={handleNewProductChange} className={styles.formInput} />
           <select name="category" value={newProduct.category} onChange={handleNewProductChange} className={styles.formInput}>
-            <option value="">-- {t('common.select_category')} --</option>
+            <option value="">-- {t('inventory.select_category')} --</option>
             {categories?.map(cat => (<option key={cat.id} value={cat.name}>{cat.name}</option>))}
           </select>
-          <Button type="submit" variant="save"><FaPlus /> {t('common.add')} {t('inventory.product')}</Button>
+          <Button type="submit" variant="save"><FaPlus /> {t('common.add')}</Button>
         </form>
       </div>
 
@@ -111,36 +111,45 @@ function InventoryPage() {
               {paginatedProducts.map(product => (
                 <tr key={product.id}>
                   {editingId === product.id ? (
-                    <>
-                      {/* Editing Row Inputs */}
-                      <td><input type="text" name="name" value={editFormData.name} onChange={handleEditFormChange} className={styles.formInput} /></td>
-                      <td>
-                        <select name="category" value={editFormData.category} onChange={handleEditFormChange} className={styles.formInput}>
-                          {categories?.map(cat => (<option key={cat.id} value={cat.name}>{cat.name}</option>))}
-                        </select>
-                      </td>
-                      <td><input type="number" name="stock" value={editFormData.stock} onChange={handleEditFormChange} className={styles.formInput} style={{ maxWidth: '80px' }} /></td>
-                      <td><input type="number" name="purchasePrice" value={editFormData.purchasePrice} onChange={handleEditFormChange} className={styles.formInput} style={{ maxWidth: '100px' }} /></td>
-                      <td><input type="number" name="sellingPrice" value={editFormData.sellingPrice} onChange={handleEditFormChange} className={styles.formInput} style={{ maxWidth: '100px' }} /></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <Button variant="save" onClick={handleUpdateClick}><FaSave />{t('common.save')}</Button>
-                          <Button variant="cancel" onClick={handleCancelClick}><FaTimes />{t('common.cancel')}</Button>
-                        </div>
-                      </td>
-                    </>
+                     <>
+                     <td data-label={t('common.name')}>
+                       <input type="text" name="name" value={editFormData.name} onChange={handleEditFormChange} className={styles.formInput} />
+                     </td>
+                     <td data-label={t('common.category')}>
+                       <select name="category" value={editFormData.category} onChange={handleEditFormChange} className={styles.formInput}>
+                         {categories?.map(cat => (<option key={cat.id} value={cat.name}>{cat.name}</option>))}
+                       </select>
+                     </td>
+                     <td data-label={t('common.stock')}>
+                       <input type="number" name="stock" value={editFormData.stock} onChange={handleEditFormChange} className={styles.formInput} />
+                     </td>
+                     <td data-label={t('inventory.purchase_price')}>
+                       <input type="number" name="purchasePrice" value={editFormData.purchasePrice} onChange={handleEditFormChange} className={styles.formInput} />
+                     </td>
+                     <td data-label={t('inventory.selling_price')}>
+                       <input type="number" name="sellingPrice" value={editFormData.sellingPrice} onChange={handleEditFormChange} className={styles.formInput} />
+                     </td>
+                     <td data-label={t('common.actions')}>
+                       <div style={{ display: 'flex', gap: '8px' }}>
+                         <Button variant="save" onClick={handleUpdateClick}><FaSave />{t('common.save')}</Button>
+                         <Button variant="cancel" onClick={handleCancelClick}><FaTimes />{t('common.cancel')}</Button>
+                       </div>
+                     </td>
+                   </>
                   ) : (
                     <>
-                      {/* Read-Only Row Data */}
-                      <td>{product.name}</td>
-                      <td>{product.category}</td>
-                      <td style={product.stock <= 7 ? { color: 'red', fontWeight: 'bold' } : {}}>{product.stock}</td>
-                      <td>${product.purchasePrice?.toFixed(2)}</td>
-                      <td>${product.sellingPrice?.toFixed(2)}</td>
-                      <td>
+                      {/* ADD data-label TO EACH CELL IN THE READ-ONLY ROW */}
+                      <td data-label={t('common.name')}>{product.name}</td>
+                      <td data-label={t('common.category')}>{product.category}</td>
+                      <td data-label={t('common.stock')} style={product.stock <= 7 ? { color: 'red', fontWeight: 'bold' } : {}}>
+                        {product.stock}
+                      </td>
+                      <td data-label={t('inventory.purchase_price')}>${product.purchasePrice?.toFixed(2)}</td>
+                      <td data-label={t('inventory.selling_price')}>${product.sellingPrice?.toFixed(2)}</td>
+                      <td data-label={t('common.actions')}>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <Button variant="edit" onClick={() => handleEditClick(product)}><FaEdit />{t('common.edit')}</Button>
-                          <Button variant="delete" onClick={() => deleteProduct(product.id)}><FaTrash />{t('common.delete')}</Button>
+                          <Button variant="edit" onClick={() => handleEditClick(product)}><FaEdit /></Button>
+                          <Button variant="delete" onClick={() => deleteProduct(product.id)}><FaTrash /></Button>
                         </div>
                       </td>
                     </>

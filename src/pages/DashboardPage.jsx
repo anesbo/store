@@ -253,27 +253,31 @@ function DashboardPage() {
         </div>
         <div style={{overflowX: 'auto'}}>
           <table className={styles.historyTable}>
-            <thead><tr><th>{t('common.date')}</th><th>{t('common.items')}</th><th>{t('common.total')}</th><th>{t('common.details')}</th></tr></thead>
+            <thead><tr><th>{t('common.date')}</th><th>{t('common.items')}</th><th>{t('common.total')}</th><th>{t('common.details')}</th><th>{t('common.actions')}</th></tr></thead>
             <tbody>
               {historyPagination.paginatedItems.map(sale => ([
                 <tr key={sale.id}>
-                  <td>{new Date(sale.timestamp).toLocaleDateString()}</td>
-                  <td>{sale.items.length}</td>
-                  <td>${sale.totalAmount.toFixed(2)}</td>
-                  <td>
+                  <td data-label={t('common.date')}>{new Date(sale.timestamp).toLocaleDateString()}</td>
+                  <td data-label={t('common.items')}>{sale.items.length}</td>
+                  <td data-label={t('common.total')}>${sale.totalAmount.toFixed(2)}</td>
+                  <td data-label={t('common.details')}>
                     <button onClick={() => handleToggleSaleDetails(sale.id)} className={styles.detailsButton}>
                       {expandedSaleId === sale.id ? t('common.hide') : t('common.show')}
                     </button>
+                    </td>
+                    <td data-label={t('common.actions')}>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
                     <button 
                     onClick={() => deleteSale(sale.id)} 
                     title={t('common.delete')}
                     style={{background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444'}}
-                  >
+                    >
                     <FaTrash />
                   </button>
                   <button onClick={() => handleEditSale(sale)}>
                     <FaEdit />
                   </button>
+                  </div>
                   </td>
                 </tr>,
                 expandedSaleId === sale.id && (

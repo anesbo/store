@@ -79,6 +79,7 @@
     "sales_history": "Sales History"
   },
   "inventory": {
+    "select_category": "Select Category...",
     "title": "Inventory Management",
     "add_product": "Add New Product",
     "product_name": "Product Name",

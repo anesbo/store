@@ -7,37 +7,49 @@ import styles from './SettingsPage.module.css';
 import Button from '../components/ui/Button.jsx';
 import toast from 'react-hot-toast';
 
-
 function SettingsPage() {
-  const { t } = useTranslation();
-  const { updateSetting, setPassword, archiveOldData, runAutoBackup } = useSettings();
+  // --- Hooks ---
+  const { t, i18n } = useTranslation();
+  const { updateSetting, setPassword, archiveOldData, runAutoBackup, setRecoveryInfo } = useSettings();
   const staleDaysSetting = useSetting('staleDays', 20);
+  const secretQuestion = useSetting('secretQuestion', '');
   
+  // --- State ---
   const [staleDays, setStaleDays] = useState(20);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [exportFileName, setExportFileName] = useState(`store-backup-${new Date().toISOString().split('T')[0]}`);
+  const [currentQuestion, setCurrentQuestion] = useState('');
+  const [recoveryAnswer, setRecoveryAnswer] = useState('');
 
-  const { i18n } = useTranslation(); // Keep this one
+  // --- Effects ---
+  useEffect(() => {
+    setCurrentQuestion(secretQuestion);
+  }, [secretQuestion]);
 
-  const changeLanguage = (lng) => { // Keep this one
-    i18n.changeLanguage(lng);
-  };
   useEffect(() => {
     setStaleDays(staleDaysSetting);
   }, [staleDaysSetting]);
 
+  // --- Handlers ---
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
+
+  const handleSetRecovery = () => {
+    setRecoveryInfo(currentQuestion, recoveryAnswer);
+    setRecoveryAnswer('');
+  };
+
   const handleSaveStaleDays = () => {
     updateSetting('staleDays', parseInt(staleDays, 10));
-    // Toast is already in the 'updateSetting' hook
   };
   
   const handleSetPassword = () => {
     if (newPassword !== confirmPassword) {
-      return toast.error("Passwords do not match.");
+      return toast.error(t('toasts.passwords_no_match'));
     }
     setPassword(newPassword);
-    toast.success("Password set successfully!");
     setNewPassword('');
     setConfirmPassword('');
   };
@@ -56,13 +68,13 @@ function SettingsPage() {
     link.href = jsonString;
     link.download = `${exportFileName}.json`;
     link.click();
-    toast.success("Data exported successfully!");
+    toast.success(t('toasts.export_success'));
   };
 
   const handleImport = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    if (!window.confirm("WARNING: Importing a file will overwrite ALL existing data. Are you sure?")) {
+    if (!window.confirm(t('settings.warning_overwrite'))) {
       event.target.value = ''; 
       return;
     }
@@ -72,12 +84,11 @@ function SettingsPage() {
         const data = JSON.parse(e.target.result);
         const expectedTables = ['products', 'categories', 'sales', 'expenses', 'settings', 'suppliers'];
         const tablesToImport = expectedTables.filter(t => db[t] && data[t]);
-
         await db.transaction('rw', tablesToImport, async () => {
           await Promise.all(tablesToImport.map(key => db[key].clear()));
           await Promise.all(tablesToImport.map(key => db[key].bulkAdd(data[key])));
         });
-        toast.success("Data imported! Page will now reload.");
+        toast.success(t('toasts.import_success'));
         setTimeout(() => window.location.reload(), 1500);
       } catch (error) {
         toast.error("Failed to import file. It may be corrupted.");
@@ -88,7 +99,7 @@ function SettingsPage() {
     event.target.value = '';
   };
 
-   return (
+  return (
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>{t('settings.title')}</h1>
       
@@ -145,6 +156,31 @@ function SettingsPage() {
         </div>
         <Button onClick={handleSetPassword} variant="save">{t('settings.set_password_button')}</Button>
       </div>
+
+      <div className={styles.card}>
+        <h2 className={styles.cardTitle}>{t('settings.recovery_title')}</h2>
+        <div className={styles.settingItem}>
+          <label className={styles.label}>{t('settings.secret_question')}</label>
+          <input 
+            type="text" 
+            placeholder={t('settings.secret_question_placeholder')}
+            value={currentQuestion} 
+            onChange={e => setCurrentQuestion(e.target.value)} 
+            className={styles.input} 
+          />
+        </div>
+        <div className={styles.settingItem}>
+          <label className={styles.label}>{t('settings.secret_answer')}</label>
+          <input 
+            type="text" 
+            placeholder={t('settings.secret_answer_placeholder')}
+            value={recoveryAnswer} 
+            onChange={e => setRecoveryAnswer(e.target.value)} 
+            className={styles.input} 
+          />
+        </div>
+        <Button onClick={handleSetRecovery} variant="save">{t('settings.save_recovery_info')}</Button>
+      </div>
       
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>{t('settings.archive_data')}</h2>
@@ -156,6 +192,5 @@ function SettingsPage() {
     </div>
   );
 }
-
 
 export default SettingsPage;

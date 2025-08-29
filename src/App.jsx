@@ -1,7 +1,8 @@
 // src/App.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect ,useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { useSettings } from './hooks/useSettings';
 import Navbar from './components/layout/Navbar.jsx';
@@ -18,7 +19,9 @@ import SettingsPage from './pages/SettingsPage.jsx';
 import './i18n';
 
 function App() {
+  const { i18n } = useTranslation(); 
   const { runAutoBackup } = useSettings();
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   useEffect(() => {
     runAutoBackup();
@@ -27,14 +30,16 @@ function App() {
     }, 900000); // 15 minutes
     return () => clearInterval(intervalId);
   }, [runAutoBackup]);
-
+  useEffect(() => {
+    document.documentElement.dir = i18n.dir();
+  }, [i18n, i18n.language]);
   return (
     <BrowserRouter>
       <AuthProvider>
           <div className={styles.appContainer}>
             <Toaster position="top-center" />
-            <Navbar />
-            <main className={styles.mainContent}>
+            <Navbar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+            <main className={`${styles.mainContent} ${isCollapsed ? styles.mainContentCollapsed : ''}`}>
               <Routes>
                 <Route element={<ProtectedLayout />}>
                   <Route path="/" element={<DashboardPage />} />

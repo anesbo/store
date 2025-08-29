@@ -125,18 +125,20 @@ function ExpensesPage() {
                     </>
                   ) : (
                     <>
-                      <td>{new Date(expense.date).toLocaleDateString()}</td>
-                      <td>{expense.description}</td>
-                      <td>{t(`expense_types.${expense.type}`, expense.type)}</td>
-                      <td style={{fontWeight: 'bold', color: expense.status === 'Unpaid' ? 'red' : 'green'}}>{t(`expenses.status_${expense.status.toLowerCase()}`)}</td>
-                      <td>${expense.amount.toFixed(2)}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <Button variant="edit" onClick={() => handleEditClick(expense)}><FaEdit /></Button>
-                          <Button variant="delete" onClick={() => deleteExpense(expense.id)}><FaTrash /></Button>
-                        </div>
-                      </td>
-                    </>
+                    <td data-label={t('common.date')}>{new Date(expense.date).toLocaleDateString()}</td>
+                    <td data-label={t('common.description')}>{expense.description}</td>
+                    <td data-label={t('common.type')}>{t(`expense_types.${expense.type}`, expense.type)}</td>
+                    <td data-label={t('common.status')} style={{fontWeight: 'bold', color: expense.status === 'Unpaid' ? 'red' : 'green'}}>
+                      {t(`expenses.status_${expense.status.toLowerCase()}`)}
+                    </td>
+                    <td data-label={t('common.amount')}>${expense.amount.toFixed(2)}</td>
+                    <td data-label={t('common.actions')}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <Button variant="edit" onClick={() => handleEditClick(expense)}><FaEdit /></Button>
+                        <Button variant="delete" onClick={() => deleteExpense(expense.id)}><FaTrash /></Button>
+                      </div>
+                    </td>
+                  </>
                   )}
                 </tr>
               ))}

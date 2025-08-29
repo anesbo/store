@@ -8,7 +8,7 @@ import { useSales } from '../hooks/useSales';
 import styles from './SalesPage.module.css';
 import Modal from '../components/ui/Modal.jsx';
 import Button from '../components/ui/Button.jsx';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes,FaShoppingCart } from 'react-icons/fa';
 
 function SalesPage() {
   const { t } = useTranslation();
@@ -144,6 +144,7 @@ function SalesPage() {
   };
 
   return (
+    <>
     <div className={styles.pageContainer}>
       <div className={styles.productGrid}>
         <input
@@ -168,7 +169,7 @@ function SalesPage() {
           ))}
         </div>
       </div>
-      <div className={styles.cart}>
+      <div id='cart-section' className={styles.cart}>
         <h2 className={styles.cartTitle}>{saleId ? t('sales.edit_sale') : t('sales.current_sale')}</h2>
         <ul className={styles.cartList}>
           {cart.map(item => (
@@ -218,6 +219,13 @@ function SalesPage() {
         )}
       </Modal>
     </div>
+    {cart.length > 0 && (
+      <a href="#cart-section" className={styles.goToCartButton}>
+        <FaShoppingCart />
+        <span className={styles.cartBadge}>{cart.length}</span>
+      </a>
+    )}
+    </>
   );
 }
 
