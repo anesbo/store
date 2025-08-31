@@ -80,7 +80,7 @@ export function useSettings() {
         const backupFile = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
         const nowForFilename = new Date();
         const timestamp = `${nowForFilename.getFullYear()}-${String(nowForFilename.getMonth() + 1).padStart(2, '0')}-${String(nowForFilename.getDate()).padStart(2, '0')}_${String(nowForFilename.getHours()).padStart(2, '0')}-${String(nowForFilename.getMinutes()).padStart(2, '0')}-${String(nowForFilename.getSeconds()).padStart(2, '0')}`;
-        const fileName = `anes-store-backup-${timestamp}.json`;
+        const fileName = `akram-store-backup-${timestamp}.json`;
         const SUPABASE_URL = 'https://sbkzctzbwifuzudfnshh.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNia3pjdHpid2lmdXp1ZGZuc2hoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NzIzNDYsImV4cCI6MjA3MDE0ODM0Nn0.98UzaQKW59u_d2Z9H1BYluofjWBxVWBCY4pq5G7Hvek';
         const response = await fetch(`${SUPABASE_URL}/storage/v1/object/backups/${fileName}`, {
