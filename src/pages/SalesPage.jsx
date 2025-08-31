@@ -205,6 +205,7 @@ function SalesPage() {
             <p>{t('sales.available_stock')}: {selectedProduct.stock}</p>
             <label htmlFor="quantity">{t('common.quantity')}:</label>
             <input
+            style={{marginLeft:'0.5rem',marginRight:'0.5rem'}}
               id="quantity"
               type="number"
               min="1"

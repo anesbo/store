@@ -165,6 +165,11 @@
     "archived_expenses": "Dépenses Archivées ({{count}})"
   },
   "settings": {
+    "recovery_title": "Informations de Récupération de Mot de Passe",
+   "secret_question":"question secret ",
+   "secret_answer":"réponse secret ",
+    "secret_answer_placeholder":"inserer la réponse",
+    "save_recovery_info": "Enregistrer les Infos de Récupération",
     "language": "Langue",
   "select_language": "Sélectionner la Langue de l'App",
   "auto_backup_desc": "S'exécute automatiquement toutes les 24 heures à l'ouverture de l'application. Vous pouvez aussi le déclencher manuellement pour tester.",

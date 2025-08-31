@@ -165,6 +165,12 @@
     "archived_expenses": "Archived Expenses ({{count}})"
   },
   "settings": {
+    "recovery_title": "Set Recovery Question",
+   "secret_question":"secret question ",
+   "secret_answer":"secret answer ",
+    "secret_question_placeholder":"enter a recovery question",
+    "secret_answer_placeholder":"enter the answer",
+    "save_recovery_info": "Save Recovery Info",
     "language": "Language",
     "select_language": "Select App Language",
     "auto_backup_desc": "Runs automatically every 24 hours when the app is opened. You can also trigger it manually to test.",

@@ -1,5 +1,5 @@
 // src/components/layout/Navbar.jsx
-import React, { useState,useRef ,useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Navbar.module.css';
 import { useAuth } from '../../context/AuthContext';
@@ -14,37 +14,36 @@ import {
 function Navbar() {
   const { isAuthenticated, logout } = useAuth();
   const { settings } = useSettings();
-  const passwordIsSet = settings?.some(s => s.key === 'passwordHash');
   const { t } = useTranslation();
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const navbarRef = useRef();
-  
-  const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed
+  const passwordIsSet = settings?.some(s => s.key === 'passwordHash');
 
-  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   useEffect(() => {
-    const newWidth = isCollapsed ? '50px' : '250px';
+    const newWidth = isCollapsed ? '80px' : '250px';
     document.documentElement.style.setProperty('--navbar-width', newWidth);
   }, [isCollapsed]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (navbarRef.current && !navbarRef.current.contains(event.target)) {
-        setIsCollapsed(true); // Collapse the navbar if click is outside
+      if (!isCollapsed && navbarRef.current && !navbarRef.current.contains(event.target)) {
+        setIsCollapsed(true);
       }
     };
-    // Add event listener
     document.addEventListener('mousedown', handleClickOutside);
-    // Clean up event listener on unmount
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isCollapsed]);
+
+  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
   return (
     <nav ref={navbarRef} className={`${styles.navbar} ${isCollapsed ? styles.navbarCollapsed : ''}`}>
       <div className={styles.header}>
+        <h1 className={styles.title}>👕 {t('nav.app_title')}</h1>
         <button className={styles.toggleButton} onClick={toggleCollapse}>
           {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </button>
       </div>
-
       <ul className={styles.navList}>
         <li><Link to="/" className={styles.navLink} title={t('nav.dashboard')}><FaTachometerAlt /> <span className={styles.navLinkText}>{t('nav.dashboard')}</span></Link></li>
         <li><Link to="/inventory" className={styles.navLink} title={t('nav.inventory')}><FaBoxOpen /> <span className={styles.navLinkText}>{t('nav.inventory')}</span></Link></li>
@@ -55,13 +54,7 @@ function Navbar() {
         <li><Link to="/reports" className={styles.navLink} title={t('nav.reports')}><FaChartBar /> <span className={styles.navLinkText}>{t('nav.reports')}</span></Link></li>
         <li><Link to="/settings" className={styles.navLink} title={t('nav.settings')}><FaCog /> <span className={styles.navLinkText}>{t('nav.settings')}</span></Link></li>
       </ul>
-
       <div className={styles.footer}>
-        {passwordIsSet && isAuthenticated && (
-          <button onClick={logout} className={styles.logoutButton}>
-            {isCollapsed ? '🚪' : t('nav.logout')}
-          </button>
-        )}
         <p>Version 0.1.0</p>
         <p>© 2025</p>
       </div>

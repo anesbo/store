@@ -164,6 +164,12 @@
     "archived_expenses": "المصروفات المؤرشفة ({{count}})"
   },
   "settings": {
+    "recovery_title": "إعدادات استرداد الحساب",
+   "secret_question":"السؤال السري",
+   "secret_answer":"الجواب السري",
+    "secret_question_placeholder":"اختر سؤالا سري",
+    "secret_answer_placeholder":"اختر جوابا للسؤال",
+    "save_recovery_info": "حفظ معلومات الاسترداد",
     "language": "اللغة",
     "select_language": "اختر لغة التطبيق",
     "auto_backup_desc": "يعمل تلقائيًا كل 24 ساعة عند فتح التطبيق. يمكنك أيضًا تشغيله يدويًا للاختبار.",

@@ -1,17 +1,11 @@
 /* src/App.module.css */
-
-.appContainer {
-    display: flex;
-    height: 100vh; /* Make the app container fill the full screen height */
-  }
+.mainContent {
+  flex-grow: 1;
+  overflow-y: auto;
+  height: 100vh;
   
-  .mainContent {
-    flex-grow: 1;
-    overflow-y: auto;
-    margin-left: 250px; /* <-- ADD THIS (matches navbar width) */
-    transition: margin-left 0.3s ease-in-out; /* <-- ADD THIS for smooth transition */
-  }
-  
-  .mainContentCollapsed {
-    margin-left: 50px; /* <-- ADD THIS (matches collapsed navbar width) */
-  }
+  /* CHANGE THIS: Instead of a variable, we set the margin 
+    to always match the collapsed navbar's width (80px).
+  */
+  margin-inline-start: 50px; 
+}

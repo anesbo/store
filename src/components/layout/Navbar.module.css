@@ -1,16 +1,16 @@
 /* src/components/layout/Navbar.module.css */
-
 .navbar {
   position: fixed;
+  inset-inline-start: 0;
+  top: 0;
+  height: 100vh;
   z-index: 1001;
   width: 250px;
-  background-color: #121314;
+  background-color: #000000;
   color: #ecf0f1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
   transition: width 0.3s ease-in-out;
-  flex-shrink: 0; /* Important: Prevents the sidebar from being squished on small screens */
 }
 
 .navbarCollapsed {
@@ -23,21 +23,17 @@
 }
 .navbarCollapsed .navLink {
   justify-content: center;
-  padding: 1rem 0;
+  padding: 20px 0;
 }
 .navbarCollapsed .header {
   padding: 1.5rem 0;
-  display: flex;
-  justify-content: center;
 }
 .navbarCollapsed .logoutButton {
-  display: none;
+  width: auto;
+  padding: 8px 12px;
 }
 
 .header {
-  padding: 1.5rem;
-  display: flex;
-  align-items: flex-start;
   border-bottom: 1px solid #34495e;
   position: relative;
 }
@@ -52,15 +48,17 @@
 .navList {
   list-style: none;
   padding: 0;
-  margin:0;
+  margin: 1rem 0;
   flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .navLink {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem;
   text-decoration: none;
   color: #ecf0f1;
   transition: background-color 0.2s;
@@ -68,7 +66,7 @@
 }
 
 .navLink:hover {
-  background-color: #34495e;
+  background-color: #343434;
 }
 
 .navLinkText {
@@ -81,6 +79,7 @@
   font-size: 0.8rem;
   color: #95a5a6;
   border-top: 1px solid #34495e;
+  flex-shrink: 0;
 }
 
 .logoutButton {
@@ -97,7 +96,11 @@
 
 .toggleButton {
   display: flex;
-  background-color: #1c1e1f;
+  position: absolute;
+  top: 50%;
+  inset-inline-end: -15px;
+  transform: translateY(-50%);
+  background-color: #0b0c0c;
   color: white;
   border: none;
   border-radius: 50%;
@@ -106,6 +109,5 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  z-index: 101;
 }
-
-/* All hamburger menu styles are removed as they are no longer needed */

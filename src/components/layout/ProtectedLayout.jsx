@@ -1,12 +1,15 @@
 // src/components/layout/ProtectedLayout.jsx
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings, useSetting } from '../../hooks/useSettings';
 import { Outlet } from 'react-router-dom';
 import Button from '../ui/Button.jsx';
 import toast from 'react-hot-toast';
+import styles from './ProtectedLayout.module.css'; // 1. Import the stylesheet
 
 function LoginScreen() {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
@@ -18,7 +21,7 @@ function LoginScreen() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError('');
 
     if (isRecovery) {
         const success = await resetPasswordWithRecovery(recoveryAnswer);
@@ -26,47 +29,52 @@ function LoginScreen() {
             toast.success('Password reset! The page will now reload.');
             setTimeout(() => window.location.reload(), 1500);
         } else {
-            setError('Incorrect answer.');
+            setError(t('login.incorrect_answer'));
         }
     } else {
         const success = await login(password);
         if (!success) {
-            setError('Incorrect password.');
+            setError(t('login.incorrect_password'));
         }
     }
   };
 
   return (
-    <div style={{display:'flex', justifyContent:'center', alignItems:'center', height:'80vh'}}>
-      <form onSubmit={handleSubmit} style={{padding: '2rem', /* ... */}}>
-        <h2 style={{marginTop: 0}}>
-            {isRecovery ? 'Password Recovery' : 'Enter Password'}
+    <div className={styles.container}>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <h2 className={styles.title}>
+            {isRecovery ? t('settings.recovery_title') : t('login.enter_password')}
         </h2>
 
         {isRecovery ? (
             <>
-                <p style={{fontWeight: 500}}>{secretQuestion || 'No recovery question has been set.'}</p>
+                <p className={styles.questionText}>{secretQuestion || t('login.no_recovery_question')}</p>
                 <input 
                   type="text" 
-                  placeholder="Your secret answer" 
+                  placeholder={t('login.secret_answer_placeholder')}
                   value={recoveryAnswer} 
                   onChange={e => setRecoveryAnswer(e.target.value)} 
-                  style={{/*...*/}}
+                  className={styles.input}
                   disabled={!secretQuestion}
                 />
-                <Button type="submit" variant="save" disabled={!secretQuestion}>Reset Password</Button>
+                <Button type="submit" variant="save" disabled={!secretQuestion}>{t('login.reset_password')}</Button>
             </>
         ) : (
             <>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} style={{/*...*/}} />
-              <Button type="submit" variant="edit">Login</Button>
+              <input 
+                type="password" 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                className={styles.input} 
+              />
+              <Button type="submit" variant="edit">{t('login.login_button')}</Button>
             </>
         )}
         
-        {error && <p style={{color:'red', marginTop: '1rem'}}>{error}</p>}
+        {error && <p className={styles.errorText}>{error}</p>}
         
-        <button type="button" onClick={() => { setIsRecovery(!isRecovery); setError(''); }} style={{background:'none', border:'none', cursor:'pointer', color:'blue', marginTop:'1rem', display:'block', width: '100%'}}>
-            {isRecovery ? 'Back to Login' : 'Forgot Password?'}
+        <button type="button" onClick={() => { setIsRecovery(!isRecovery); setError(''); }} className={styles.toggleButton}>
+            {isRecovery ? t('login.back_to_login') : t('login.forgot_password')}
         </button>
       </form>
     </div>
@@ -79,16 +87,13 @@ export default function ProtectedLayout() {
   
   const passwordIsSet = settings?.some(s => s.key === 'passwordHash');
 
-  // If the settings are still loading, you might want to show a loading indicator
   if (settings === undefined) {
     return <div>Loading...</div>;
   }
 
-  // If no password is set in the DB, or if the user is authenticated, show the page.
   if (!passwordIsSet || isAuthenticated) {
-    return <Outlet />; // This renders the actual page (Dashboard, Inventory, etc.)
+    return <Outlet />;
   }
 
-  // Otherwise, show the login screen.
   return <LoginScreen />;
 }

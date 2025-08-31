@@ -18,6 +18,7 @@
   .btnSave {
     background-color: #22c55e; /* green-500 */
     color: white;
+    height: 100%;
   }
   .btnSave:hover {
     background-color: #16a34a; /* green-600 */
@@ -25,8 +26,10 @@
   
   /* Edit Button (Blue) */
   .btnEdit {
-    background-color: #3b82f6; /* blue-500 */
+    background-color: #0042ad; /* blue-500 */
     color: white;
+    align-items: center;
+    display: block;
   }
   .btnEdit:hover {
     background-color: #2563eb; /* blue-600 */

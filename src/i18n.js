@@ -2,15 +2,22 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import HttpApi from 'i18next-http-backend';
+import LanguageDetector from 'i18next-browser-languagedetector'; // 1. Import the plugin
 
 i18n
-  .use(HttpApi) // Loads translations from your /public/locales folder
-  .use(initReactI18next) // Passes i18n down to react-i18next
+  .use(HttpApi)
+  .use(LanguageDetector) // 2. Add the plugin to i18next
+  .use(initReactI18next)
   .init({
-    fallbackLng: 'en', // Use 'en' if the detected language is not available
-    debug: true, // Logs info to the console; remove in production
+    fallbackLng: 'en',
+    debug: true,
     interpolation: {
-      escapeValue: false, // React already safes from xss
+      escapeValue: false,
+    },
+    // 3. Configure the detector
+    detection: {
+      order: ['localStorage', 'navigator'], // Check localStorage first, then the browser language
+      caches: ['localStorage'], // Save the chosen language to localStorage
     },
   });
 
