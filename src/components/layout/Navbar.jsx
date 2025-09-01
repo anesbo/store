@@ -39,7 +39,7 @@ function Navbar() {
   return (
     <nav ref={navbarRef} className={`${styles.navbar} ${isCollapsed ? styles.navbarCollapsed : ''}`}>
       <div className={styles.header}>
-        <h1 className={styles.title}>akram store</h1>
+        <h1 className={styles.title}>store</h1>
         <button className={styles.toggleButton} onClick={toggleCollapse}>
           {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </button>
