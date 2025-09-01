@@ -3,6 +3,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import { useSales } from '../hooks/useSales';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement, // Add PointElement for the dots
+  LineElement,  // Add LineElement for the line
+  Title,
+  Tooltip,
+  Legend,
+  Filler // Add Filler for the background color
+} from 'chart.js';
 import { useSetting } from '../hooks/useSettings';
 import { useExpenses } from '../hooks/useExpenses';
 import { useSuppliers } from '../hooks/useSuppliers';
@@ -12,7 +24,16 @@ import { useNavigate } from 'react-router-dom';
 import { FaEdit } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { FaTrash, FaRegCalendarAlt, FaRegCalendarCheck, FaRegClock, FaBoxes, FaChartPie, FaChartBar } from 'react-icons/fa';
-
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 const ITEMS_PER_PAGE = 5;
 
 function StatCard({ icon, title, value, secondaryValue, color }) {
@@ -119,7 +140,29 @@ function DashboardPage() {
     const unpaidDebts = expenses.filter(e => e.status === 'Unpaid')
       .map(e => ({ ...e, supplierName: supplierMap.get(e.supplierId) || 'Unknown' }));
 
+      const last7DaysSales = {
+        labels: [],
+        data: [],
+      };
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const label = d.toLocaleDateString(undefined, { weekday: 'short' });
+        last7DaysSales.labels.push(label);
+  
+        const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setDate(endOfDay.getDate() + 1);
+  
+        const dailySales = sales.filter(s => {
+          const saleDate = new Date(s.timestamp);
+          return saleDate >= startOfDay && saleDate < endOfDay;
+        });
+        const dailyTotal = dailySales.reduce((sum, s) => sum + s.totalAmount, 0);
+        last7DaysSales.data.push(dailyTotal);
+      }
     return { 
+      last7DaysSales,
         sortedSales, lowStock, staleProducts, unpaidDebts, 
         todayRevenue, weekRevenue, monthRevenue, yearRevenue,
         todayProfit, weekProfit, monthProfit, yearProfit,
@@ -178,22 +221,91 @@ function DashboardPage() {
       <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage >= totalPages}>&rarr;</button>
     </div>
   );
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false, // <-- ADD THIS LINE to disable all animations
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: t('dashboard.sales_last_7_days') },
+    },
+  };
+  const chartData = {
+    labels: dashboardData.last7DaysSales?.labels || [],
+    datasets: [
+      {
+        fill: true,
+        label: t('common.revenue'),
+        data: dashboardData.last7DaysSales?.data || [],
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx;
+          if (!ctx) return 'rgba(59, 130, 246, 0.2)';
+          const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+          gradient.addColorStop(0.6, 'rgba(59, 130, 246, 0.5)');
+          gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+          return gradient;
+        },
+        pointBackgroundColor: 'rgb(59, 130, 246)',
+      },
+    ],
+  };
 
   return (
     <div className={styles.pageContainer}>
       <h1 className={styles.title}>{t('dashboard.title')}</h1>
       
       <div className={styles.statsGrid}>
-        <StatCard icon={<FaRegClock />} title={t('dashboard.revenue_today')} value={`$${dashboardData.todayRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.todayProfit.toFixed(2)}`} color="#22c55e" />
-        <StatCard icon={<FaRegCalendarAlt />} title={t('dashboard.revenue_week')} value={`$${dashboardData.weekRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.weekProfit.toFixed(2)}`} color="#3b82f6" />
-        <StatCard icon={<FaRegCalendarCheck />} title={t('dashboard.revenue_month')} value={`$${dashboardData.monthRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.monthProfit.toFixed(2)}`} color="#eab308" />
-      </div>
-      
-      <div className={styles.statsGrid} style={{marginTop: '2rem'}}>
-        <StatCard icon={<FaChartBar />} title={t('dashboard.income_year')} value={`$${dashboardData.yearRevenue.toFixed(2)}`} secondaryValue={`${t('common.profit')}: $${dashboardData.yearProfit.toFixed(2)}`} color="#8b5cf6" />
-        <StatCard icon={<FaChartPie />} title={t('dashboard.inventory_value')} value={`$${dashboardData.totalCapitalSelling.toFixed(2)}`} secondaryValue={`${t('common.cost')}: $${dashboardData.totalCapitalPurchase.toFixed(2)}`} color="#ec4899" />
-        <StatCard icon={<FaBoxes />} title={t('dashboard.product_count')} value={dashboardData.productCount} secondaryValue={t('dashboard.category_count', {count: dashboardData.categoryCount})} color="#6366f1" />
-      </div>
+  <StatCard 
+    icon={<FaRegClock />} 
+    title={t('dashboard.revenue_today')} 
+    value={`$${dashboardData.todayRevenue.toFixed(2)}`} 
+    secondaryValue={`${t('common.profit')}: $${dashboardData.todayProfit.toFixed(2)}`} 
+    color="#22c55e" 
+  />
+  <StatCard 
+    icon={<FaRegCalendarAlt />} 
+    title={t('dashboard.revenue_week')} 
+    value={`$${dashboardData.weekRevenue.toFixed(2)}`} 
+    secondaryValue={`${t('common.profit')}: $${dashboardData.weekProfit.toFixed(2)}`} 
+    color="#3b82f6" 
+  />
+  <StatCard 
+    icon={<FaRegCalendarCheck />} 
+    title={t('dashboard.revenue_month')} 
+    value={`$${dashboardData.monthRevenue.toFixed(2)}`} 
+    secondaryValue={`${t('common.profit')}: $${dashboardData.monthProfit.toFixed(2)}`} 
+    color="#eab308" 
+  />
+  <StatCard 
+    icon={<FaChartBar />} 
+    title={t('dashboard.income_year')} 
+    value={`$${dashboardData.yearRevenue.toFixed(2)}`} 
+    secondaryValue={`${t('common.profit')}: $${dashboardData.yearProfit.toFixed(2)}`} 
+    color="#8b5cf6" 
+  />
+  <StatCard 
+    icon={<FaChartPie />} 
+    title={t('dashboard.inventory_value')} 
+    value={`$${dashboardData.totalCapitalSelling.toFixed(2)}`} 
+    secondaryValue={`${t('common.cost')}: $${dashboardData.totalCapitalPurchase.toFixed(2)}`} 
+    color="#ec4899" 
+  />
+  <StatCard 
+    icon={<FaBoxes />} 
+    title={t('dashboard.product_count')} 
+    value={dashboardData.productCount} 
+    secondaryValue={t('dashboard.category_count', {count: dashboardData.categoryCount})} 
+    color="#6366f1" 
+  />
+</div>
+
+{/* The Chart Card now correctly follows the single grid */}
+<div className={styles.card} style={{marginTop: '1rem'}}>
+  <div className={styles.chartContainer}>
+    <Line options={chartOptions} data={chartData} />
+  </div>
+</div>
 
       <div className={styles.bottomGrid}>
         <div className={styles.card}>

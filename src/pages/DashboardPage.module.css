@@ -53,7 +53,12 @@
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
 }
-
+.chartContainer {
+  position: relative;
+  height: 300px; /* Give the container a fixed height */
+  width: 100%;
+  margin-top: 17px;
+}
 .card {
   background-color: white;
   padding: 1.5rem;
